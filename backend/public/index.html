@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart School Manager | Multi-Tenant AI ERP</title>
+  <meta name="description" content="Next-Generation Multi-Tenant Smart School Management Platform with AI Face Attendance, Live Transport Tracking, and Role-Based Portals.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-role="CORRESPONDENT">
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="brand-text">
+          <h2>Smart<span>School</span></h2>
+          <span class="badge-role" id="brandRoleBadge">CORRESPONDENT ERP</span>
+        </div>
+      </div>
+
+      <!-- Active User Profile Card -->
+      <div class="sidebar-user-card">
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-avatar">
+            <img src="/assets/admin_hero.jpg" alt="User Avatar" id="sidebarUserAvatar">
+            <span class="sidebar-avatar-pulse"></span>
+          </div>
+          <div class="sidebar-user-details">
+            <h4 id="sidebarUserName">Dr. Evelyn Vance</h4>
+            <span id="sidebarUserRole">Super Admin</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="nav-menu">
+        <div class="nav-section-label">MAIN CONTROLS</div>
+        <a href="#dashboard" class="nav-item active" data-tab="dashboard">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#face-attendance" class="nav-item" data-tab="face-attendance">
+          <i class="fa-solid fa-camera-viewfinder"></i>
+          <span>AI Face Attendance</span>
+          <span class="nav-badge hot">AI</span>
+        </a>
+        
+        <div class="nav-section-label">ACADEMICS</div>
+        <a href="#students" class="nav-item" data-tab="students">
+          <i class="fa-solid fa-users"></i>
+          <span id="navStudentsLabel">Students & Classes</span>
+        </a>
+        <a href="#staff" class="nav-item" data-tab="staff">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span>Faculty & Staff</span>
+        </a>
+        <a href="#timetable" class="nav-item" data-tab="timetable">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Timetable & Schedule</span>
+        </a>
+        <a href="#homework" class="nav-item" data-tab="homework">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Homework & Diary</span>
+        </a>
+        <a href="#exams" class="nav-item" data-tab="exams">
+          <i class="fa-solid fa-award"></i>
+          <span>Exams & Gradebook</span>
+        </a>
+
+        <div class="nav-section-label">MANAGEMENT & FLEET</div>
+        <a href="#finance" class="nav-item" data-tab="finance">
+          <i class="fa-solid fa-coins"></i>
+          <span id="navFinanceLabel">Finance & Salaries</span>
+        </a>
+        <a href="#transport" class="nav-item" data-tab="transport">
+          <i class="fa-solid fa-bus"></i>
+          <span>Live Bus Tracking</span>
+          <span class="nav-badge live">LIVE</span>
+        </a>
+        <a href="#notices" class="nav-item" data-tab="notices">
+          <i class="fa-solid fa-bullhorn"></i>
+          <span>Notices & Events</span>
+        </a>
+        <a href="#leaves" class="nav-item" data-tab="leaves">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Leaves & Approvals</span>
+        </a>
+      </nav>
+
+      <!-- Server Connection Footer -->
+      <div class="sidebar-footer">
+        <div class="connection-status">
+          <span class="status-dot online" id="serverStatusDot"></span>
+          <div class="status-info">
+            <span class="status-title" id="serverStatusText">Backend Live (Port 5000)</span>
+            <span class="status-sub" id="activeRoleFooter">Theme: Royal Violet Admin</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Top Navigation Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-icon mobile-toggle" id="menuToggle" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="globalSearch" placeholder="Search students, faculty, classes, notices...">
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <a href="/Smart_School_Project_Audit_Report.pdf" download="Smart_School_Project_Audit_Report.pdf" class="btn btn-secondary btn-sm" id="btnDownloadPdfTopbar" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding: 7px 14px; font-weight:600; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color, rgba(255,255,255,0.15));" title="Download System Audit & Mistakes Report PDF">
+            <i class="fa-solid fa-file-pdf" style="color: #ef4444; font-size: 1.1rem;"></i>
+            <span>Download Audit PDF</span>
+          </a>
+
+          <button class="btn-icon" id="btnThemeToggle" title="Toggle Light/Dark Theme">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+
+          <button class="btn-icon notification-bell" id="btnNotifications" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notification-badge" id="topNotifCount">3</span>
+          </button>
+
+          <div class="user-profile-widget" id="userProfileWidget" onclick="openLoginModal()" title="Click to Log in / Switch Account">
+            <div class="avatar">
+              <img src="/assets/admin_hero.jpg" alt="Avatar" id="userAvatar">
+              <span class="avatar-status"></span>
+            </div>
+            <div class="user-meta">
+              <span class="user-name" id="userName">Dr. Evelyn Vance</span>
+              <span class="user-title" id="userTitle">Correspondent (Super Admin)</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- View Containers (Single Page Routing) -->
+      <main class="content-container">
+
+        <!-- ==================== DASHBOARD VIEW ==================== -->
+        <section id="view-dashboard" class="content-view active">
+          <!-- Role Welcome Banner (Normal clean layout for Admin, with animated persona avatar for Principal, Teacher, Parent) -->
+          <div class="welcome-banner" id="welcomeBanner">
+            <div class="welcome-content">
+              <div class="role-pill-floating" id="rolePillFloating">
+                <i class="fa-solid fa-gauge-high"></i> SUPER ADMIN COMMAND
+              </div>
+              <h1 id="welcomeTitle">Welcome to <span class="gradient-text">St. Jude International School</span></h1>
+              <p id="welcomeSubtitle">Academic Year 2026-2027 • All 14 departments reporting normal operations.</p>
+              <div class="banner-tags" id="bannerTags">
+                <span class="tag"><i class="fa-solid fa-school"></i> Code: <strong>SJIS-8821</strong></span>
+                <span class="tag"><i class="fa-solid fa-location-dot"></i> Main Campus</span>
+                <span class="tag tag-success"><i class="fa-solid fa-circle-check"></i> System Operational</span>
+              </div>
+              <div class="welcome-actions" id="welcomeActions">
+                <a href="/Smart_School_Project_Audit_Report.pdf" download="Smart_School_Project_Audit_Report.pdf" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none;">
+                  <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> Download Audit Report (PDF)
+                </a>
+                <button class="btn btn-primary" onclick="switchTab('face-attendance')">
+                  <i class="fa-solid fa-camera"></i> Kiosk Mode
+                </button>
+                <button class="btn btn-secondary" onclick="openModal('addStudentModal')">
+                  <i class="fa-solid fa-user-plus"></i> Enroll Student
+                </button>
+              </div>
+            </div>
+
+            <div class="hero-3d-wrapper" id="hero3DWrapper">
+              <div class="hero-3d-card">
+                <img src="/assets/admin_hero.jpg" alt="Active Persona Character" id="hero3DImg" class="hero-3d-image">
+              </div>
+            </div>
+          </div>
+
+          <!-- Role Metrics Grid -->
+          <div class="metrics-grid" id="metricsGrid">
+            <!-- Rendered Dynamically via JS -->
+          </div>
+
+          <!-- Charts & Overview Section -->
+          <div class="dashboard-grid">
+            <div class="card card-lg">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fa-solid fa-chart-line text-role"></i>
+                  <h3 id="chartTitle">Weekly Institutional Attendance Trends</h3>
+                </div>
+                <div class="card-controls">
+                  <button class="pill active" id="chartPill1">Students (97.4%)</button>
+                  <button class="pill" id="chartPill2">Faculty (98.2%)</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="attendanceChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="card card-md">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fa-solid fa-bolt text-role"></i>
+                  <h3 id="activityFeedTitle">Live Activity Feed</h3>
+                </div>
+                <span class="live-pulse"></span>
+              </div>
+              <div class="card-body">
+                <div class="activity-feed" id="activityFeed">
+                  <!-- Dynamically Rendered -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Access Sections -->
+          <div class="dashboard-grid secondary">
+            <!-- Transport Snapshot -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fa-solid fa-map-location-dot text-role"></i>
+                  <h3>Live Bus Fleet Status</h3>
+                </div>
+                <button class="btn-text" onclick="switchTab('transport')">Open Live Map →</button>
+              </div>
+              <div class="card-body">
+                <div class="bus-mini-list" id="busMiniList"></div>
+              </div>
+            </div>
+
+            <!-- Pending Approvals / Tasks -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fa-solid fa-clock-rotate-left text-role"></i>
+                  <h3 id="approvalBoxTitle">Pending Approvals & Actions</h3>
+                </div>
+                <span class="badge badge-warning" id="pendingLeavesCount">3 Pending</span>
+              </div>
+              <div class="card-body">
+                <div class="approval-list" id="pendingApprovalsList"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== AI FACE ATTENDANCE VIEW ==================== -->
+        <section id="view-face-attendance" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>AI Face Recognition & Geofenced Attendance</h2>
+              <p>Biometric check-in with liveness detection and campus boundary validation.</p>
+            </div>
+            <div class="header-actions">
+              <span class="geofence-pill"><i class="fa-solid fa-location-crosshairs"></i> Geofence: <strong>Active (100m)</strong></span>
+            </div>
+          </div>
+
+          <div class="face-scanner-grid">
+            <div class="scanner-card card">
+              <div class="camera-viewport" id="cameraViewport">
+                <video id="webcamVideo" autoplay playsinline muted></video>
+                <div class="face-overlay" id="faceOverlay">
+                  <div class="scanner-corner top-left"></div>
+                  <div class="scanner-corner top-right"></div>
+                  <div class="scanner-corner bottom-left"></div>
+                  <div class="scanner-corner bottom-right"></div>
+                  <div class="scan-laser"></div>
+                  <div class="detection-label" id="detectionLabel">Align face inside frame</div>
+                </div>
+                <div class="camera-placeholder" id="cameraPlaceholder">
+                  <i class="fa-solid fa-camera"></i>
+                  <p>Click "Start Camera" or run instant AI simulation</p>
+                </div>
+              </div>
+
+              <div class="scanner-controls">
+                <button class="btn btn-primary" id="btnStartCamera">
+                  <i class="fa-solid fa-video"></i> Start Webcam
+                </button>
+                <button class="btn btn-gradient" id="btnSimulateScan">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Simulate AI Match
+                </button>
+                <button class="btn btn-secondary" id="btnStopCamera">
+                  <i class="fa-solid fa-stop"></i> Stop
+                </button>
+              </div>
+            </div>
+
+            <div class="scan-results-card card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fa-solid fa-fingerprint text-role"></i>
+                  <h3>Verification Logs</h3>
+                </div>
+                <button class="btn-text" id="btnClearScanLog">Clear</button>
+              </div>
+              <div class="card-body">
+                <div class="matched-profile" id="matchedProfileBox" style="display: none;">
+                  <img src="/assets/teacher_hero.jpg" id="matchedAvatar" alt="Matched User">
+                  <div class="matched-info">
+                    <h4 id="matchedName">Ms. Clara Oswald</h4>
+                    <p id="matchedRole">Senior Mathematics Faculty</p>
+                    <div class="match-score">
+                      <span class="score-badge"><i class="fa-solid fa-circle-check"></i> 99.4% Match</span>
+                      <span class="time-badge" id="matchedTime">08:14:22 AM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="recent-scans-list" id="recentScansList">
+                  <!-- Dynamic Scans -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== STUDENTS & CLASSES VIEW ==================== -->
+        <section id="view-students" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2 id="studentsViewHeading">Student Enrollment & Academic Roster</h2>
+              <p>Manage enrolled students, section assignments, and parent mappings.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-secondary" onclick="openModal('addSectionModal')">
+                <i class="fa-solid fa-folder-plus"></i> New Section
+              </button>
+              <button class="btn btn-primary" onclick="openModal('addStudentModal')">
+                <i class="fa-solid fa-user-plus"></i> Add Student
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-toolbar card">
+            <div class="filter-group">
+              <label>Class Grade:</label>
+              <select id="filterClass" class="custom-select" onchange="filterStudents()">
+                <option value="ALL">All Grades (1 - 12)</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 8">Grade 8</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Section:</label>
+              <select id="filterSection" class="custom-select" onchange="filterStudents()">
+                <option value="ALL">All Sections</option>
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Fee Status:</label>
+              <select id="filterFeeStatus" class="custom-select" onchange="filterStudents()">
+                <option value="ALL">All Status</option>
+                <option value="PAID">Paid</option>
+                <option value="PARTIAL">Partial</option>
+                <option value="PENDING">Pending</option>
+              </select>
+            </div>
+            <div class="filter-search">
+              <input type="text" id="studentSearchInput" placeholder="Filter by student name or roll no..." onkeyup="filterStudents()">
+            </div>
+          </div>
+
+          <div class="table-card card">
+            <div class="table-responsive">
+              <table class="data-table" id="studentsTable">
+                <thead>
+                  <tr>
+                    <th>Roll No</th>
+                    <th>Student Name</th>
+                    <th>Class / Section</th>
+                    <th>Parent Contact</th>
+                    <th>Attendance %</th>
+                    <th>Fee Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== STAFF & TEACHERS VIEW ==================== -->
+        <section id="view-staff" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>Faculty & Staff Directory</h2>
+              <p>Manage educators, staff roles, salary templates, and biometrics onboarding.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openModal('addStaffModal')">
+                <i class="fa-solid fa-user-tie"></i> Add Faculty
+              </button>
+            </div>
+          </div>
+
+          <div class="staff-grid" id="staffGrid">
+            <!-- Dynamic staff cards -->
+          </div>
+        </section>
+
+        <!-- ==================== TIMETABLE VIEW ==================== -->
+        <section id="view-timetable" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>Master Academic Timetable</h2>
+              <p>Weekly schedules, period allocations, and teacher assignments.</p>
+            </div>
+            <div class="header-actions">
+              <select id="timetableClassSelect" class="custom-select">
+                <option value="10-A">Grade 10 - Section A</option>
+                <option value="10-B">Grade 10 - Section B</option>
+                <option value="9-A">Grade 9 - Section A</option>
+                <option value="8-A">Grade 8 - Section A</option>
+              </select>
+              <button class="btn btn-primary" onclick="openModal('addTimetableModal')">
+                <i class="fa-solid fa-plus"></i> Add Slot
+              </button>
+            </div>
+          </div>
+
+          <div class="timetable-card card">
+            <div class="timetable-grid" id="timetableGrid">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== HOMEWORK & DIARY VIEW ==================== -->
+        <section id="view-homework" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>Homework & Digital School Diary</h2>
+              <p>Broadcast daily assignments, lecture notes, and teacher feedback.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openModal('addHomeworkModal')">
+                <i class="fa-solid fa-file-arrow-up"></i> Assign Homework
+              </button>
+            </div>
+          </div>
+
+          <div class="homework-grid" id="homeworkList">
+            <!-- Dynamic homework cards -->
+          </div>
+        </section>
+
+        <!-- ==================== EXAMS & MARKS VIEW ==================== -->
+        <section id="view-exams" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>Examinations, Gradebook & Marks</h2>
+              <p>Standardized term tests, marks entry, and student report card generation.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-gradient" onclick="openModal('enterMarksModal')">
+                <i class="fa-solid fa-pen-to-square"></i> Enter Marks
+              </button>
+            </div>
+          </div>
+
+          <div class="table-card card">
+            <div class="card-header">
+              <div class="card-title">
+                <i class="fa-solid fa-chart-simple text-role"></i>
+                <h3>Mid-Term Examination Gradebook</h3>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="examMarksTable">
+                <thead>
+                  <tr>
+                    <th>Roll No</th>
+                    <th>Student Name</th>
+                    <th>Mathematics (100)</th>
+                    <th>Physics (100)</th>
+                    <th>Chemistry (100)</th>
+                    <th>Total %</th>
+                    <th>Grade</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="examMarksBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== FINANCE & SALARIES VIEW ==================== -->
+        <section id="view-finance" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>Institutional Finance & Fee Management</h2>
+              <p>Tuition fees, automated invoices, teacher payroll, and loan management.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-secondary" onclick="openModal('addExpenseModal')">
+                <i class="fa-solid fa-receipt"></i> Log Expense
+              </button>
+              <button class="btn btn-primary" onclick="showToast('Payroll processed and distributed', 'success')">
+                <i class="fa-solid fa-calculator"></i> Run Payroll
+              </button>
+            </div>
+          </div>
+
+          <div class="finance-tabs">
+            <button class="tab-btn active" data-subtab="fee-records">Fee Invoices</button>
+            <button class="tab-btn" data-subtab="payroll">Staff Payroll</button>
+            <button class="tab-btn" data-subtab="expenses">School Expenses</button>
+            <button class="tab-btn" data-subtab="loans">Loans & Advances</button>
+          </div>
+
+          <div id="subtab-fee-records" class="subtab-content active">
+            <div class="table-card card">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice ID</th>
+                      <th>Student</th>
+                      <th>Class</th>
+                      <th>Term</th>
+                      <th>Total Amount</th>
+                      <th>Paid Amount</th>
+                      <th>Due Date</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="feesTableBody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="subtab-payroll" class="subtab-content">
+            <div class="table-card card">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Staff Member</th>
+                      <th>Role</th>
+                      <th>Month</th>
+                      <th>Base Salary</th>
+                      <th>Deductions</th>
+                      <th>Net Disbursed</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payrollTableBody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="subtab-expenses" class="subtab-content">
+            <div class="table-card card">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th>Amount</th>
+                      <th>Authorized By</th>
+                    </tr>
+                  </thead>
+                  <tbody id="expensesTableBody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="subtab-loans" class="subtab-content">
+            <div class="table-card card">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Staff Member</th>
+                      <th>Requested Amount</th>
+                      <th>EMI Amount</th>
+                      <th>Tenure (Months)</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="loansTableBody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== LIVE TRANSPORT VIEW ==================== -->
+        <section id="view-transport" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>Live School Bus GPS Tracking</h2>
+              <p>Real-time vehicle telemetry, pickup routes, geofencing, and driver dispatch.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-secondary" id="btnToggleSimBus">
+                <i class="fa-solid fa-play"></i> Simulate Bus Movement
+              </button>
+            </div>
+          </div>
+
+          <div class="transport-layout">
+            <!-- Simulated GPS Map -->
+            <div class="map-card card">
+              <div class="simulated-map" id="mapCanvas">
+                <div class="map-grid-lines"></div>
+                
+                <!-- Campus Marker -->
+                <div class="school-campus-marker">
+                  <i class="fa-solid fa-school"></i>
+                  <span>Main Campus</span>
+                </div>
+
+                <!-- Bus 1 Marker -->
+                <div class="bus-pin bus-1" id="busMarker1">
+                  <div class="bus-bubble">
+                    <strong>Bus #04</strong>
+                    <span>Route: North Ring Road (38 km/h)</span>
+                  </div>
+                  <i class="fa-solid fa-bus"></i>
+                </div>
+
+                <!-- Bus 2 Marker -->
+                <div class="bus-pin bus-2" id="busMarker2">
+                  <div class="bus-bubble">
+                    <strong>Bus #09</strong>
+                    <span>Route: Central Metro (42 km/h)</span>
+                  </div>
+                  <i class="fa-solid fa-bus"></i>
+                </div>
+
+                <div class="map-legend">
+                  <span><i class="fa-solid fa-circle text-emerald"></i> Active Fleet</span>
+                  <span><i class="fa-solid fa-circle text-amber"></i> Campus Hub</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Route Stop Details -->
+            <div class="bus-sidebar-card card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fa-solid fa-route text-role"></i>
+                  <h3>Active Bus Routes</h3>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="route-details-list" id="routeDetailsList">
+                  <!-- Dynamic -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== NOTICES & EVENTS VIEW ==================== -->
+        <section id="view-notices" class="content-view">
+          <div class="view-header">
+            <div>
+              <h2>Digital Circulars & Events</h2>
+              <p>Publish school-wide announcements, emergency notices, and event calendars.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openModal('addNoticeModal')">
+                <i class="fa-solid fa-bullhorn"></i> New Announcement
+              </button>
+            </div>
+          </div>
+
+          <div class="notices-grid" id="noticesContainer">
+            <!-- Dynamic notices -->
+          </div>
+        </section>
+
+        <!-- ==================== LEAVES & RECTIFICATIONS VIEW ==================== -->
+        <section id="view-leaves" class="content-view">
+          <!-- 1. Page Header -->
+          <div class="view-header leaves-header-bar">
+            <div class="header-text-group">
+              <div class="page-title-row">
+                <h2><i class="fa-solid fa-calendar-check text-role"></i> Leave Requests & Attendance Rectifications</h2>
+                <span class="badge badge-role" id="leavesRoleBadge">Super Admin Approvals</span>
+              </div>
+              <p class="subtitle">Review staff leave requests, attendance corrections, and approval workflows.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-secondary" id="btnRefreshLeaves" onclick="refreshLeavesData()" title="Refresh records">
+                <i class="fa-solid fa-arrows-rotate" id="refreshIconLeaves"></i> <span>Refresh</span>
+              </button>
+              <button class="btn btn-primary btn-apply-leave" onclick="openApplyLeaveModal()">
+                <i class="fa-solid fa-plus"></i> <span>Apply for Leave</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Summary Cards -->
+          <div class="leaves-summary-grid">
+            <!-- Pending Requests -->
+            <div class="summary-stat-card card-pending" onclick="setLeaveStatusFilter('PENDING')">
+              <div class="stat-icon-wrap bg-amber-soft">
+                <i class="fa-solid fa-clock-rotate-left text-amber"></i>
+              </div>
+              <div class="stat-details">
+                <div class="stat-top">
+                  <span class="stat-label">Pending Requests</span>
+                  <span class="pulse-indicator warning-pulse"></span>
+                </div>
+                <h3 class="stat-number text-amber" id="statPendingLeaves">0</h3>
+                <span class="stat-subtext">Awaiting Super Admin review</span>
+              </div>
+            </div>
+
+            <!-- Approved -->
+            <div class="summary-stat-card card-approved" onclick="setLeaveStatusFilter('APPROVED')">
+              <div class="stat-icon-wrap bg-emerald-soft">
+                <i class="fa-solid fa-circle-check text-emerald"></i>
+              </div>
+              <div class="stat-details">
+                <div class="stat-top">
+                  <span class="stat-label">Approved</span>
+                  <span class="pulse-indicator success-pulse"></span>
+                </div>
+                <h3 class="stat-number text-emerald" id="statApprovedLeaves">0</h3>
+                <span class="stat-subtext">Authorized time-off</span>
+              </div>
+            </div>
+
+            <!-- Rejected -->
+            <div class="summary-stat-card card-rejected" onclick="setLeaveStatusFilter('REJECTED')">
+              <div class="stat-icon-wrap bg-rose-soft">
+                <i class="fa-solid fa-circle-xmark text-rose"></i>
+              </div>
+              <div class="stat-details">
+                <div class="stat-top">
+                  <span class="stat-label">Rejected</span>
+                  <span class="pulse-indicator danger-pulse"></span>
+                </div>
+                <h3 class="stat-number text-rose" id="statRejectedLeaves">0</h3>
+                <span class="stat-subtext">Declined with recorded reason</span>
+              </div>
+            </div>
+
+            <!-- Attendance Rectifications -->
+            <div class="summary-stat-card card-rectifications" onclick="switchLeavesTab('rectifications')">
+              <div class="stat-icon-wrap bg-indigo-soft">
+                <i class="fa-solid fa-user-clock text-indigo"></i>
+              </div>
+              <div class="stat-details">
+                <div class="stat-top">
+                  <span class="stat-label">Attendance Rectifications</span>
+                  <span class="pulse-indicator info-pulse"></span>
+                </div>
+                <h3 class="stat-number text-indigo" id="statPendingRectifications">0</h3>
+                <span class="stat-subtext">Punch correction claims</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Navigation Tabs -->
+          <div class="leaves-tabs-nav card">
+            <div class="tab-buttons-group">
+              <button class="leaves-tab-btn active" id="tabBtnLeaveRequests" onclick="switchLeavesTab('requests')">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Leave Requests</span>
+                <span class="tab-count-badge" id="tabBadgeRequests">0</span>
+              </button>
+              <button class="leaves-tab-btn" id="tabBtnRectifications" onclick="switchLeavesTab('rectifications')">
+                <i class="fa-solid fa-clock"></i>
+                <span>Attendance Rectifications</span>
+                <span class="tab-count-badge" id="tabBadgeRectifications">0</span>
+              </button>
+              <button class="leaves-tab-btn" id="tabBtnLeaveBalances" onclick="switchLeavesTab('balances')">
+                <i class="fa-solid fa-scale-balanced"></i>
+                <span>Leave Balance</span>
+              </button>
+              <button class="leaves-tab-btn" id="tabBtnLeavePolicies" onclick="switchLeavesTab('policies')">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Leave Policies</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Search and Multi-Filter Toolbar -->
+          <div class="leaves-filter-toolbar card" id="leavesFilterToolbar">
+            <div class="filter-search-box">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="text" id="leavesSearchInput" placeholder="Search applicant, employee ID, department, reason..." oninput="handleLeavesSearchInput()">
+              <button class="btn-clear-search" id="btnClearLeavesSearch" onclick="clearLeavesSearch()" style="display:none;" title="Clear search">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div class="filter-controls-group">
+              <!-- Status Filter -->
+              <div class="filter-item">
+                <label><i class="fa-solid fa-filter"></i> Status</label>
+                <select id="filterLeaveStatus" class="custom-select filter-select" onchange="applyLeavesFilters()">
+                  <option value="ALL">All Statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="REJECTED">Rejected</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+
+              <!-- Leave Type Filter -->
+              <div class="filter-item">
+                <label><i class="fa-solid fa-tag"></i> Leave Type</label>
+                <select id="filterLeaveType" class="custom-select filter-select" onchange="applyLeavesFilters()">
+                  <option value="ALL">All Leave Types</option>
+                  <option value="CASUAL">Casual Leave (CL)</option>
+                  <option value="SICK">Sick / Medical Leave (SL)</option>
+                  <option value="EARNED">Earned Leave (EL)</option>
+                  <option value="EMERGENCY">Emergency Leave</option>
+                  <option value="MATERNITY">Maternity Leave</option>
+                  <option value="PATERNITY">Paternity Leave</option>
+                  <option value="PERMISSION">Permission / Short Leave</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <!-- Department Filter -->
+              <div class="filter-item">
+                <label><i class="fa-solid fa-building-columns"></i> Department</label>
+                <select id="filterLeaveDept" class="custom-select filter-select" onchange="applyLeavesFilters()">
+                  <option value="ALL">All Departments</option>
+                  <option value="Teaching">Teaching</option>
+                  <option value="Administration">Administration</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Library">Library</option>
+                  <option value="Laboratory">Laboratory</option>
+                  <option value="Support Staff">Support Staff</option>
+                </select>
+              </div>
+
+              <!-- Date Filter -->
+              <div class="filter-item">
+                <label><i class="fa-solid fa-calendar-range"></i> Date Range</label>
+                <select id="filterLeaveDate" class="custom-select filter-select" onchange="handleDateFilterChange()">
+                  <option value="ALL">All Time</option>
+                  <option value="TODAY">Today</option>
+                  <option value="THIS_WEEK">This Week</option>
+                  <option value="THIS_MONTH">This Month</option>
+                  <option value="CUSTOM">Custom Range</option>
+                </select>
+              </div>
+
+              <!-- Custom Date Range Inputs (Visible when Date Range is Custom) -->
+              <div class="custom-date-inputs" id="customDateRangeBox" style="display:none;">
+                <input type="date" id="filterCustomStartDate" class="custom-date-input" onchange="applyLeavesFilters()">
+                <span class="date-sep">to</span>
+                <input type="date" id="filterCustomEndDate" class="custom-date-input" onchange="applyLeavesFilters()">
+              </div>
+
+              <button class="btn btn-secondary btn-reset-filters" onclick="resetLeavesFilters()" title="Reset all filters">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- ==================== TAB 1: LEAVE REQUESTS TABLE ==================== -->
+          <div class="leaves-tab-panel active" id="panelLeaveRequests">
+            <div class="table-card card">
+              <div class="table-header-meta">
+                <div class="table-meta-left">
+                  <h3 class="table-title"><i class="fa-solid fa-list-check text-role"></i> Staff Leave Requests</h3>
+                  <span class="table-subtitle" id="tableLeavesCountSubtitle">Showing records</span>
+                </div>
+                <div class="table-meta-right">
+                  <span class="badge badge-info" id="activeFilterBadge">Active Filter: All</span>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table" id="leavesDataTable">
+                  <thead>
+                    <tr>
+                      <th>Applicant</th>
+                      <th>Employee ID</th>
+                      <th>Department</th>
+                      <th>Leave Type</th>
+                      <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Days</th>
+                      <th>Reason</th>
+                      <th>Applied On</th>
+                      <th>Status</th>
+                      <th class="col-action" style="text-align:center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="leavesTableBody">
+                    <!-- Dynamic rendering -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Empty State -->
+              <div class="empty-state-box" id="leavesEmptyState" style="display:none;">
+                <div class="empty-icon-wrap">
+                  <i class="fa-solid fa-calendar-xmark"></i>
+                </div>
+                <h4>No Leave Requests Found</h4>
+                <p>No leave requests match your search or active filter criteria.</p>
+                <button class="btn btn-secondary btn-sm" onclick="resetLeavesFilters()">
+                  <i class="fa-solid fa-arrows-rotate"></i> Reset Filters
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== TAB 2: ATTENDANCE RECTIFICATIONS TABLE ==================== -->
+          <div class="leaves-tab-panel" id="panelRectifications">
+            <div class="table-card card">
+              <div class="table-header-meta">
+                <div class="table-meta-left">
+                  <h3 class="table-title"><i class="fa-solid fa-user-clock text-role"></i> Attendance Punch Rectification Claims</h3>
+                  <span class="table-subtitle">Review employee biometric time corrections and missed punch claims.</span>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table" id="rectificationsDataTable">
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Employee ID</th>
+                      <th>Date</th>
+                      <th>Original Attendance</th>
+                      <th>Requested Attendance</th>
+                      <th>Reason</th>
+                      <th>Submitted On</th>
+                      <th>Status</th>
+                      <th style="text-align:right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rectificationsTableBody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Rectifications Empty State -->
+              <div class="empty-state-box" id="rectificationsEmptyState" style="display:none;">
+                <div class="empty-icon-wrap">
+                  <i class="fa-solid fa-clock"></i>
+                </div>
+                <h4>No Attendance Rectifications</h4>
+                <p>All staff attendance records are currently reconciled and verified.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== TAB 3: LEAVE BALANCE & MANUAL ADJUSTMENT ==================== -->
+          <div class="leaves-tab-panel" id="panelLeaveBalances">
+            <div class="table-card card">
+              <div class="table-header-meta">
+                <div class="table-meta-left">
+                  <h3 class="table-title"><i class="fa-solid fa-scale-balanced text-role"></i> Employee Leave Balances & Allocation</h3>
+                  <span class="table-subtitle">Monitor institutional quota consumption and perform authorized adjustments.</span>
+                </div>
+                <div class="table-meta-right">
+                  <div class="search-box-mini">
+                    <input type="text" id="balanceSearchInput" placeholder="Search employee..." oninput="filterBalanceTable()">
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table" id="leaveBalancesDataTable">
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Employee ID</th>
+                      <th>Department</th>
+                      <th>Casual (CL)</th>
+                      <th>Sick (SL)</th>
+                      <th>Earned (EL)</th>
+                      <th>Emergency</th>
+                      <th>Total Used</th>
+                      <th>Remaining</th>
+                      <th style="text-align:right;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="leaveBalancesTableBody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== TAB 4: LEAVE POLICIES MANAGEMENT ==================== -->
+          <div class="leaves-tab-panel" id="panelLeavePolicies">
+            <div class="policies-header-row">
+              <div>
+                <h3><i class="fa-solid fa-shield-halved text-role"></i> School Leave Policies & Statutory Rules</h3>
+                <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:2px;">Configure annual quotas, consecutive limits, notice periods, and medical certificate requirements.</p>
+              </div>
+              <button class="btn btn-primary" onclick="openCreatePolicyModal()">
+                <i class="fa-solid fa-plus"></i> Add Leave Policy
+              </button>
+            </div>
+
+            <div class="policies-cards-grid" id="leavePoliciesContainer">
+              <!-- Dynamic Policy Cards -->
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== DEDICATED AUTHENTICATION & LOGIN HUB MODAL ==================== -->
+  <div class="modal-overlay" id="roleLoginModal">
+    <div class="modal-card modal-login-box">
+      <div class="modal-header login-box-header">
+        <div class="modal-header-title">
+          <div class="login-header-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <h3>Smart School Portal Authentication</h3>
+            <p class="login-header-sub">Choose your account persona and click <strong>Log In</strong> to enter the system.</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('roleLoginModal')">&times;</button>
+      </div>
+
+      <div class="modal-body login-box-body">
+        <!-- 1. Select Persona Role Tabs -->
+        <label class="login-section-label"><i class="fa-solid fa-users-gear"></i> SELECT USER ACCOUNT</label>
+        <div class="login-role-tabs">
+          <!-- Correspondent -->
+          <div class="login-role-tab active" id="tabRoleCorrespondent" onclick="selectLoginRole('CORRESPONDENT')">
+            <div class="tab-avatar-wrap">
+              <img src="/assets/admin_hero.jpg" alt="Admin 3D Avatar">
+              <span class="tab-badge-dot bg-violet"></span>
+            </div>
+            <div class="tab-info">
+              <span class="tab-role-name">👑 Correspondent</span>
+              <span class="tab-user-name">Dr. Evelyn Vance</span>
+            </div>
+            <i class="fa-solid fa-circle-check tab-check-icon"></i>
+          </div>
+
+          <!-- Principal -->
+          <div class="login-role-tab" id="tabRolePrincipal" onclick="selectLoginRole('PRINCIPAL')">
+            <div class="tab-avatar-wrap">
+              <img src="/assets/principal_hero.jpg" alt="Principal 3D Avatar">
+              <span class="tab-badge-dot bg-cyan"></span>
+            </div>
+            <div class="tab-info">
+              <span class="tab-role-name">🎓 Principal</span>
+              <span class="tab-user-name">Dr. Arthur Pendelton</span>
+            </div>
+            <i class="fa-solid fa-circle-check tab-check-icon"></i>
+          </div>
+
+          <!-- Teacher -->
+          <div class="login-role-tab" id="tabRoleTeacher" onclick="selectLoginRole('TEACHER')">
+            <div class="tab-avatar-wrap">
+              <img src="/assets/teacher_hero.jpg" alt="Teacher 3D Avatar">
+              <span class="tab-badge-dot bg-amber"></span>
+            </div>
+            <div class="tab-info">
+              <span class="tab-role-name">📚 Faculty Teacher</span>
+              <span class="tab-user-name">Ms. Clara Oswald</span>
+            </div>
+            <i class="fa-solid fa-circle-check tab-check-icon"></i>
+          </div>
+
+          <!-- Parent -->
+          <div class="login-role-tab" id="tabRoleParent" onclick="selectLoginRole('PARENT')">
+            <div class="tab-avatar-wrap">
+              <img src="/assets/parent_hero.jpg" alt="Parent 3D Avatar">
+              <span class="tab-badge-dot bg-rose"></span>
+            </div>
+            <div class="tab-info">
+              <span class="tab-role-name">👨‍👩‍👧 Parent Portal</span>
+              <span class="tab-user-name">David Chen</span>
+            </div>
+            <i class="fa-solid fa-circle-check tab-check-icon"></i>
+          </div>
+        </div>
+
+        <!-- 2. Interactive Credentials Form -->
+        <form id="portalLoginForm" onsubmit="handleLoginFormSubmit(event)" class="login-form-inner">
+          <div class="login-persona-preview" id="loginPersonaPreview">
+            <div class="persona-preview-avatar">
+              <img src="/assets/admin_hero.jpg" alt="Selected User" id="loginPreviewImg">
+            </div>
+            <div class="persona-preview-details">
+              <div class="persona-preview-badge" id="loginPreviewRoleBadge">SUPER ADMIN</div>
+              <h4 id="loginPreviewName">Dr. Evelyn Vance</h4>
+              <p id="loginPreviewDesc">Full institutional command, financial ERP, staff payroll & multi-campus analytics.</p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="loginEmailInput"><i class="fa-solid fa-envelope"></i> Email Address</label>
+              <div class="input-with-icon">
+                <i class="fa-solid fa-at input-icon"></i>
+                <input type="email" id="loginEmailInput" required value="admin@smartschool.edu" placeholder="name@smartschool.edu">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="loginPasswordInput"><i class="fa-solid fa-lock"></i> Password</label>
+              <div class="input-with-icon">
+                <i class="fa-solid fa-key input-icon"></i>
+                <input type="password" id="loginPasswordInput" required value="password123" placeholder="Enter password">
+                <button type="button" class="btn-toggle-pw" onclick="toggleLoginPassword()" title="Show/Hide Password">
+                  <i class="fa-solid fa-eye" id="pwToggleIcon"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="login-form-meta">
+            <label class="remember-label">
+              <input type="checkbox" id="rememberMeCheckbox" checked>
+              <span>Keep me signed in</span>
+            </label>
+            <span class="school-code-badge"><i class="fa-solid fa-school"></i> Campus ID: <strong>ST-JUDE-2026</strong></span>
+          </div>
+
+          <!-- The Clickable Login Button -->
+          <div class="login-actions">
+            <button type="submit" class="btn btn-primary btn-login-action" id="loginSubmitBtn">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i>
+              <span id="loginSubmitText">Log In to Portal</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Student Modal -->
+  <div class="modal-overlay" id="addStudentModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-plus text-role"></i> Enroll New Student</h3>
+        <button class="btn-close" onclick="closeModal('addStudentModal')">&times;</button>
+      </div>
+      <form id="addStudentForm" onsubmit="handleCreateStudent(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="newStudentName" required placeholder="e.g. Liam Miller">
+            </div>
+            <div class="form-group">
+              <label>Roll Number *</label>
+              <input type="text" id="newStudentRoll" required placeholder="e.g. 10-A-42">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Class Grade *</label>
+              <select id="newStudentClass" class="custom-select">
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 8">Grade 8</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Section *</label>
+              <select id="newStudentSection" class="custom-select">
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Parent/Guardian Name</label>
+              <input type="text" id="newStudentParent" placeholder="e.g. Robert Miller">
+            </div>
+            <div class="form-group">
+              <label>Parent Phone</label>
+              <input type="tel" id="newStudentPhone" placeholder="+1 555-0199">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Enroll Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Notice Modal -->
+  <div class="modal-overlay" id="addNoticeModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-bullhorn text-role"></i> Broadcast Announcement</h3>
+        <button class="btn-close" onclick="closeModal('addNoticeModal')">&times;</button>
+      </div>
+      <form id="addNoticeForm" onsubmit="handleCreateNotice(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Announcement Title *</label>
+            <input type="text" id="newNoticeTitle" required placeholder="e.g. Annual Sports Meet 2026">
+          </div>
+          <div class="form-group">
+            <label>Target Audience</label>
+            <select id="newNoticeAudience" class="custom-select">
+              <option value="ALL">Entire School (Students, Parents & Staff)</option>
+              <option value="STAFF">Staff & Teachers Only</option>
+              <option value="PARENTS">Parents Only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notice Content *</label>
+            <textarea id="newNoticeContent" rows="4" required placeholder="Type full circular details..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('addNoticeModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Publish Notice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 1. APPLY FOR LEAVE MODAL ==================== -->
+  <div class="modal-overlay" id="applyLeaveModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-role-soft">
+            <i class="fa-solid fa-calendar-plus text-role"></i>
+          </div>
+          <div>
+            <h3>Apply for Leave</h3>
+            <p class="modal-sub">Submit a planned or emergency time-off request with automatic entitlement validation.</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('applyLeaveModal')">&times;</button>
+      </div>
+
+      <form id="applyLeaveForm" onsubmit="handleApplyLeaveSubmit(event)">
+        <div class="modal-body">
+          <!-- Employee Selector -->
+          <div class="form-row">
+            <div class="form-group">
+              <label><i class="fa-solid fa-user-tie"></i> Select Employee / Applicant *</label>
+              <select id="applyLeaveEmployeeSelect" class="custom-select" required onchange="handleApplicantChange()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-tag"></i> Leave Category / Type *</label>
+              <select id="applyLeaveTypeSelect" class="custom-select" required onchange="handleLeaveTypeChange()">
+                <option value="Casual Leave (CL)">Casual Leave (CL)</option>
+                <option value="Sick Leave (SL)">Medical / Sick Leave (SL)</option>
+                <option value="Earned Leave (EL)">Earned Leave (EL)</option>
+                <option value="Emergency Leave">Emergency Leave</option>
+                <option value="Maternity Leave">Maternity Leave</option>
+                <option value="Paternity Leave">Paternity Leave</option>
+                <option value="Permission / Short Leave">Permission / Short Leave</option>
+                <option value="Other">Other Leave</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Date Range & Live Days Calculation -->
+          <div class="form-row">
+            <div class="form-group">
+              <label><i class="fa-solid fa-calendar-day"></i> Start Date *</label>
+              <input type="date" id="applyLeaveStartDate" required onchange="calculateApplyLeaveDays()" min="2020-01-01" max="2035-12-31">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-calendar-check"></i> End Date *</label>
+              <input type="date" id="applyLeaveEndDate" required onchange="calculateApplyLeaveDays()" min="2020-01-01" max="2035-12-31">
+            </div>
+          </div>
+
+          <!-- Days & Balance Indicator Banner -->
+          <div class="leave-calculation-banner" id="leaveCalcBanner">
+            <div class="calc-item">
+              <span class="calc-label">Total Leave Duration:</span>
+              <span class="calc-value text-role" id="calcTotalDaysBadge">0 Days</span>
+            </div>
+            <div class="calc-item">
+              <span class="calc-label">Available Balance:</span>
+              <span class="calc-value text-emerald" id="calcAvailableBalanceBadge">12.0 Days</span>
+            </div>
+          </div>
+
+          <!-- Reason -->
+          <div class="form-group">
+            <label><i class="fa-solid fa-pen-to-square"></i> Reason / Purpose of Leave *</label>
+            <textarea id="applyLeaveReason" rows="3" required placeholder="Provide clear rationale for absence (e.g. medical checkup, family ceremony, emergency)..."></textarea>
+          </div>
+
+          <!-- Attachment & Options -->
+          <div class="form-row">
+            <div class="form-group">
+              <label><i class="fa-solid fa-paperclip"></i> Supporting Document / Medical Certificate (Optional)</label>
+              <div class="file-upload-styled">
+                <input type="file" id="applyLeaveAttachmentFile" onchange="handleAttachmentFileChange(event)">
+                <div class="file-upload-label" id="fileUploadLabelText">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span>Choose file or drag & drop (PDF, JPG, PNG)</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-group form-group-checkboxes">
+              <label class="custom-checkbox-wrap">
+                <input type="checkbox" id="applyLeaveIsEmergency">
+                <span><i class="fa-solid fa-triangle-exclamation text-amber"></i> Mark as Emergency Leave</span>
+              </label>
+              <label class="custom-checkbox-wrap" id="adminOverrideWrap">
+                <input type="checkbox" id="applyLeaveOverrideBalance">
+                <span><i class="fa-solid fa-crown text-role"></i> Super Admin Balance Override</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-error-alert" id="applyLeaveErrorAlert" style="display:none;"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('applyLeaveModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitApplyLeave">
+            <i class="fa-solid fa-paper-plane"></i> Submit Leave Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 2. REVIEW LEAVE REQUEST MODAL / DRAWER ==================== -->
+  <div class="modal-overlay" id="reviewLeaveModal">
+    <div class="modal-card modal-lg review-leave-card">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-role-soft">
+            <i class="fa-solid fa-clipboard-check text-role"></i>
+          </div>
+          <div>
+            <h3>Leave Request Details</h3>
+            <p class="modal-sub" id="reviewModalSubtitle">Ref: LR-1024 • Academic Staff Entitlement Review</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('reviewLeaveModal')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="review-grid-layout">
+          <!-- Left: Applicant Details Card -->
+          <div class="review-applicant-card card">
+            <div class="applicant-profile-top">
+              <img src="/assets/teacher_hero.jpg" alt="Applicant Photo" class="review-avatar" id="reviewApplicantPhoto">
+              <div class="applicant-profile-names">
+                <h4 id="reviewApplicantName">Ms. Clara Oswald</h4>
+                <span class="badge badge-role" id="reviewApplicantRole">Senior Faculty</span>
+                <span class="review-empid" id="reviewApplicantEmpId">ID: EMP-1024</span>
+              </div>
+            </div>
+
+            <div class="applicant-meta-list">
+              <div class="meta-row">
+                <span class="meta-title"><i class="fa-solid fa-building-columns"></i> Department:</span>
+                <span class="meta-value" id="reviewApplicantDept">Mathematics</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-title"><i class="fa-solid fa-envelope"></i> Email:</span>
+                <span class="meta-value" id="reviewApplicantEmail">c.oswald@stjude.edu</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-title"><i class="fa-solid fa-phone"></i> Contact:</span>
+                <span class="meta-value" id="reviewApplicantPhone">+1 555-0128</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-title"><i class="fa-solid fa-clock"></i> Applied Date:</span>
+                <span class="meta-value" id="reviewAppliedDate">07 Sep 2026</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-title"><i class="fa-solid fa-chart-pie"></i> Leave Quota:</span>
+                <span class="meta-value text-emerald" id="reviewApplicantQuota">9.0 Days Remaining</span>
+              </div>
+            </div>
+
+            <!-- Previous Leave History Section for this Applicant -->
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+              <span class="detail-label" style="margin-bottom: 8px;"><i class="fa-solid fa-clock-rotate-left"></i> Previous History:</span>
+              <div id="reviewEmpHistoryList" style="display: flex; flex-direction: column; gap: 6px; font-size: 0.74rem;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Leave Details & Attachments -->
+          <div class="review-details-card card">
+            <div class="review-section-header">
+              <h4><i class="fa-solid fa-calendar-check text-role"></i> Application Information</h4>
+              <span class="badge" id="reviewStatusBadge">PENDING</span>
+            </div>
+
+            <div class="review-details-grid">
+              <div class="detail-box">
+                <span class="detail-label">Leave Type</span>
+                <strong class="detail-val" id="reviewLeaveType">Casual Leave (CL)</strong>
+              </div>
+              <div class="detail-box">
+                <span class="detail-label">Total Duration</span>
+                <strong class="detail-val text-role" id="reviewLeaveDays">2 Days</strong>
+              </div>
+              <div class="detail-box">
+                <span class="detail-label">Start Date</span>
+                <strong class="detail-val" id="reviewStartDate">07 Sep 2026</strong>
+              </div>
+              <div class="detail-box">
+                <span class="detail-label">End Date</span>
+                <strong class="detail-val" id="reviewEndDate">09 Sep 2026</strong>
+              </div>
+            </div>
+
+            <div class="review-reason-box">
+              <span class="detail-label">Reason Stated:</span>
+              <p class="reason-text" id="reviewReasonText">Attending family medical appointment and follow-up consultation.</p>
+            </div>
+
+            <!-- Attachment Section -->
+            <div class="review-attachment-box" id="reviewAttachmentSection">
+              <span class="detail-label"><i class="fa-solid fa-paperclip"></i> Attachment:</span>
+              <div class="attachment-preview-card" id="attachmentPreviewBox">
+                <i class="fa-solid fa-file-pdf text-rose" style="font-size: 1.5rem;"></i>
+                <div class="att-info">
+                  <strong id="attachmentFileName">Medical_Certificate_Sept2026.pdf</strong>
+                  <span>Supporting Medical Evidence</span>
+                </div>
+                <button class="btn btn-sm btn-secondary" onclick="showToast('Downloading supporting attachment...', 'info')">
+                  <i class="fa-solid fa-download"></i> View
+                </button>
+              </div>
+            </div>
+
+            <!-- Rejection Reason if any -->
+            <div class="rejection-history-box" id="reviewRejectionHistoryBox" style="display:none;">
+              <span class="detail-label text-rose"><i class="fa-solid fa-circle-exclamation"></i> Rejection Reason on Record:</span>
+              <p class="rejection-history-text" id="reviewRejectionHistoryText"></p>
+            </div>
+
+            <div class="confirm-recap-box" id="reviewApprovalInfoBox" style="display:none; margin-top: 14px; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25);">
+              <span class="detail-label text-emerald"><i class="fa-solid fa-circle-check"></i> Approval Record:</span>
+              <p style="font-size: 0.82rem; color: #a7f3d0; margin-top: 4px;" id="reviewApprovalInfoText"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer review-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('reviewLeaveModal')">Close</button>
+        <div class="review-actions-right" id="reviewActionsGroup">
+          <button type="button" class="btn btn-danger" id="btnReviewReject" onclick="openRejectFromReview()">
+            <i class="fa-solid fa-xmark"></i> Reject Request
+          </button>
+          <button type="button" class="btn btn-success" id="btnReviewApprove" onclick="openApproveFromReview()" style="box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+            <i class="fa-solid fa-check"></i> Approve Request
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 3. APPROVAL CONFIRMATION MODAL ==================== -->
+  <div class="modal-overlay" id="approveConfirmModal">
+    <div class="modal-card modal-confirm">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-emerald-soft">
+            <i class="fa-solid fa-circle-check text-emerald"></i>
+          </div>
+          <div>
+            <h3>Approve Leave Request?</h3>
+            <p class="modal-sub">Are you sure you want to approve this leave request?</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('approveConfirmModal')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="confirm-recap-box">
+          <div class="recap-row">
+            <span class="recap-label">Applicant:</span>
+            <strong class="recap-val" id="approveConfirmApplicant">Ms. Clara Oswald</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">Leave Type:</span>
+            <strong class="recap-val text-role" id="approveConfirmLeaveType">Casual Leave (CL)</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">Start Date:</span>
+            <strong class="recap-val" id="approveConfirmStartDate">07 Sep 2026</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">End Date:</span>
+            <strong class="recap-val" id="approveConfirmEndDate">09 Sep 2026</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">Total Days:</span>
+            <strong class="recap-val text-emerald" id="approveConfirmDays">2 Days</strong>
+          </div>
+        </div>
+        <p class="confirm-note"><i class="fa-solid fa-info-circle text-role"></i> Approving will immediately deduct from the employee's quota, record an immutable audit log, and send a notification.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('approveConfirmModal')">Cancel</button>
+        <button type="button" class="btn btn-success" id="btnConfirmApproveFinal" onclick="executeApproveLeave()">
+          <i class="fa-solid fa-check-double"></i> Confirm Approval
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. REJECT REASON MODAL ==================== -->
+  <div class="modal-overlay" id="rejectReasonModal">
+    <div class="modal-card modal-confirm">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-rose-soft">
+            <i class="fa-solid fa-circle-xmark text-rose"></i>
+          </div>
+          <div>
+            <h3>Reject Leave Request</h3>
+            <p class="modal-sub">Please provide a reason for rejecting this leave request.</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('rejectReasonModal')">&times;</button>
+      </div>
+
+      <form onsubmit="executeRejectLeave(event)">
+        <div class="modal-body">
+          <div class="confirm-recap-box" style="margin-bottom: 12px;">
+            <div class="recap-row">
+              <span class="recap-label">Applicant:</span>
+              <strong class="recap-val" id="rejectConfirmApplicant">Mr. David Vance</strong>
+            </div>
+            <div class="recap-row">
+              <span class="recap-label">Leave Type:</span>
+              <strong class="recap-val text-role" id="rejectConfirmLeaveType">Casual Leave (CL)</strong>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-comment-dots text-rose"></i> Reason for rejection * (Mandatory)</label>
+            <textarea id="rejectionReasonInput" rows="4" required minlength="5" placeholder="Explain why this request is being rejected (e.g. Clashing with examination supervision, staffing shortage, insufficient notice)..."></textarea>
+          </div>
+          <p class="confirm-note text-muted"><i class="fa-solid fa-shield-halved"></i> The rejection reason will be stored permanently in the employee's request history and included in their notification.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('rejectReasonModal')">Cancel</button>
+          <button type="submit" class="btn btn-danger" id="btnConfirmRejectFinal">
+            <i class="fa-solid fa-ban"></i> Reject Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 5. RECTIFICATION REVIEW MODAL ==================== -->
+  <div class="modal-overlay" id="rectificationReviewModal">
+    <div class="modal-card modal-confirm">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-indigo-soft">
+            <i class="fa-solid fa-user-clock text-indigo"></i>
+          </div>
+          <div>
+            <h3>Attendance Rectification Claim</h3>
+            <p class="modal-sub">Verify staff biometric punch correction and approval status.</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('rectificationReviewModal')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="confirm-recap-box">
+          <div class="recap-row">
+            <span class="recap-label">Employee:</span>
+            <strong class="recap-val" id="rectReviewEmployee">Prof. Julian Bashir</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">Date of Punch:</span>
+            <strong class="recap-val" id="rectReviewDate">04 Sep 2026</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">Original Attendance:</span>
+            <strong class="recap-val text-rose" id="rectReviewOriginal">Absent (Missed Kiosk Punch)</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">Requested Attendance:</span>
+            <strong class="recap-val text-emerald" id="rectReviewRequested">Present (08:30 AM - 04:30 PM)</strong>
+          </div>
+          <div class="recap-row">
+            <span class="recap-label">Reason Stated:</span>
+            <span class="recap-val" id="rectReviewReason">Faculty bus arrived during kiosk calibration; supervisor verified physical presence.</span>
+          </div>
+        </div>
+
+        <!-- Optional Rejection Reason field -->
+        <div class="form-group" id="rectRejectionReasonBox" style="display:none; margin-top:12px;">
+          <label><i class="fa-solid fa-comment-dots text-rose"></i> Rejection Reason *</label>
+          <textarea id="rectRejectionReasonInput" rows="2" placeholder="State reason for rejecting attendance rectification..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer" id="rectificationActionsFooter">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('rectificationReviewModal')">Close</button>
+        <button type="button" class="btn btn-danger" onclick="toggleRectRejectBox()">
+          <i class="fa-solid fa-xmark"></i> Reject
+        </button>
+        <button type="button" class="btn btn-success" onclick="executeApproveRectification()">
+          <i class="fa-solid fa-check"></i> Approve Correction
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 6. MANUAL LEAVE BALANCE ADJUSTMENT MODAL ==================== -->
+  <div class="modal-overlay" id="adjustBalanceModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-role-soft">
+            <i class="fa-solid fa-sliders text-role"></i>
+          </div>
+          <div>
+            <h3>Adjust Employee Leave Balance</h3>
+            <p class="modal-sub">Add leave credits or deduct quota with mandatory audit trail logging.</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('adjustBalanceModal')">&times;</button>
+      </div>
+
+      <form onsubmit="handleAdjustBalanceSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label><i class="fa-solid fa-user"></i> Target Employee</label>
+            <input type="text" id="adjustBalanceEmployeeName" readonly class="form-control-readonly">
+            <input type="hidden" id="adjustBalanceUserId">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label><i class="fa-solid fa-tag"></i> Leave Category *</label>
+              <select id="adjustBalanceLeaveType" class="custom-select" required>
+                <option value="CASUAL">Casual Leave (CL)</option>
+                <option value="SICK">Medical / Sick Leave (SL)</option>
+                <option value="EARNED">Earned Leave (EL)</option>
+                <option value="EMERGENCY">Emergency Leave</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-shuffle"></i> Action *</label>
+              <select id="adjustBalanceActionType" class="custom-select" required>
+                <option value="CREDIT">+ Add Leave Credit (Credit)</option>
+                <option value="DEBIT">- Deduct Leave Quota (Debit)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-hashtag"></i> Number of Days *</label>
+            <input type="number" id="adjustBalanceDays" required min="0.5" max="30" step="0.5" placeholder="e.g. 2.0">
+          </div>
+
+          <div class="form-group">
+            <label><i class="fa-solid fa-clipboard-check"></i> Mandatory Reason / Justification *</label>
+            <textarea id="adjustBalanceReason" rows="3" required placeholder="Provide authorized justification (e.g. Special duty credit, comp-off earned, manual correction)..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('adjustBalanceModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk"></i> Apply Adjustment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 7. LEAVE POLICY CREATION/EDIT MODAL ==================== -->
+  <div class="modal-overlay" id="leavePolicyModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-role-soft">
+            <i class="fa-solid fa-shield-halved text-role"></i>
+          </div>
+          <div>
+            <h3 id="policyModalTitle">Add Institutional Leave Policy</h3>
+            <p class="modal-sub">Define statutory entitlements, notice windows, and documentation rules.</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('leavePolicyModal')">&times;</button>
+      </div>
+
+      <form onsubmit="handlePolicyFormSubmit(event)">
+        <input type="hidden" id="policyEditId">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Policy / Leave Type Name *</label>
+              <input type="text" id="policyNameInput" required placeholder="e.g. Research & Sabbatical Leave">
+            </div>
+            <div class="form-group">
+              <label>Unique System Code *</label>
+              <input type="text" id="policyCodeInput" required placeholder="e.g. SABBATICAL" style="text-transform:uppercase;">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Annual Allocation (Days) *</label>
+              <input type="number" id="policyAnnualDays" required min="1" max="180" value="12">
+            </div>
+            <div class="form-group">
+              <label>Max Consecutive Days</label>
+              <input type="number" id="policyMaxConsecutive" min="1" max="90" value="5">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Minimum Notice Period (Days)</label>
+              <input type="number" id="policyNoticeDays" min="0" max="60" value="2">
+            </div>
+            <div class="form-group">
+              <label>Max Carry-Forward Days</label>
+              <input type="number" id="policyCarryForwardDays" min="0" max="60" value="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-group-checkboxes">
+              <label class="custom-checkbox-wrap">
+                <input type="checkbox" id="policyCarryForwardAllowed">
+                <span>Allow Annual Quota Carry-Forward</span>
+              </label>
+              <label class="custom-checkbox-wrap">
+                <input type="checkbox" id="policyRequiresAttachment">
+                <span>Requires Supporting Document / Medical Certificate</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Description / Policy Rules</label>
+              <textarea id="policyDescription" rows="2" placeholder="Brief terms of applicability..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('leavePolicyModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-floppy-disk"></i> Save Policy
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 8. EMPLOYEE LEAVE HISTORY & AUDIT MODAL ==================== -->
+  <div class="modal-overlay" id="employeeHistoryModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <div class="modal-icon-badge bg-role-soft">
+            <i class="fa-solid fa-clock-rotate-left text-role"></i>
+          </div>
+          <div>
+            <h3 id="historyModalEmpName">Employee Leave & Audit History</h3>
+            <p class="modal-sub">Comprehensive ledger of leave requests, balance updates, and approval trails.</p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModal('employeeHistoryModal')">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="history-content-layout" id="historyModalContent">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('employeeHistoryModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

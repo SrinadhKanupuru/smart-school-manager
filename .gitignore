@@ -1,0 +1,33 @@
+# Node / Backend dependencies and build files
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/uploads/
+
+# SQLite database files
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# Python / Python Service environment and caches
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+python_service/.venv/
+python_service/venv/
+python_service/env/
+
+# Flutter / Frontend
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.pub-cache/
+frontend/.packages
+frontend/build/
+frontend/.idea/
+frontend/*.iml
+
+# Editor configs / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,781 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums represented as strings for SQLite support:
+// Role: CORRESPONDENT, PRINCIPAL, HM, STAFF_HEAD, TEACHER, PT, PARENT
+// LeaveStatus: PENDING, APPROVED, REJECTED
+// FeeStatus: PENDING, PARTIAL, PAID
+
+model School {
+  id            String   @id @default(uuid())
+  name          String
+  code          String   @unique
+  type          String   // e.g. "Primary", "High School"
+  board         String   // e.g. "CBSE", "State Board"
+  address       String
+  city          String
+  state         String
+  country       String
+  pinCode       String
+  contactNumber String
+  latitude      Float?
+  longitude     Float?
+  geofenceRadius Float?   @default(100.0)
+  weeklyOffs     String   @default("0")
+  halfDayThreshold Float   @default(4.0)
+  fullDayThreshold Float   @default(8.0)
+  casualLeaveLimit Int     @default(12)
+  sickLeaveLimit   Int     @default(10)
+  rectificationLimit Int   @default(3)
+  autoCheckoutEnabled Boolean  @default(false)
+  autoCheckoutTime    String   @default("18:00")
+  createdAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  users         User[]
+  classes       Class[]
+  expenses      Expense[]
+  events        Event[]
+  busRoutes     BusRoute[]
+  notices       Notice[]
+  holidays      SchoolHoliday[]
+  leaveTypes    LeaveType[]
+  loanSkipRequests LoanSkipRequest[]
+  foreclosures     LoanForeclosure[]
+  salaryComponents SalaryComponent[]
+  salaryTemplates  SalaryTemplate[]
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  passwordHash   String
+  phoneNumber    String
+  fullName       String
+  role           String   // CORRESPONDENT, PRINCIPAL, HM, STAFF_HEAD, TEACHER, PT, PARENT
+  profileImage   String?
+  schoolId       String
+  school         School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Role profiles
+  teacherProfile TeacherProfile?
+  parentProfile  ParentProfile?
+  
+  // Relations
+  markedAttendance  Attendance[]    @relation("MarkedBy")
+  leaveRequests     LeaveRequest[]  @relation("Applicant")
+  approvedLeaves    LeaveRequest[]  @relation("Approver")
+  recordedExpenses  Expense[]
+  createdHomework   Homework[]
+  createdDiaries    LearningDiary[]
+  complaintsCreated Complaint[]     @relation("ComplaintCreator")
+  complaintsResolved Complaint[]    @relation("ComplaintResolver")
+  createdResources ClassResource[]  @relation("ResourceCreator")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  // Face Attendance relations
+  faceEmbedding         FaceEmbedding?       @relation("FaceEmbeddingUser")
+  faceEmbeddingsCreated FaceEmbedding[]     @relation("FaceEmbeddingAdmin")
+  staffAttendances     StaffAttendance[]
+  staffAttendanceLogs  StaffAttendanceLog[]
+  createdHolidays      SchoolHoliday[]      @relation("HolidayCreator")
+  loanRequests         LoanRequest[]        @relation("LoanApplicant")
+  approvedLoans        LoanRequest[]        @relation("LoanApprover")
+  loanSkipRequests     LoanSkipRequest[]    @relation("LoanSkipApplicant")
+  loanSkipApprovals    LoanSkipRequest[]    @relation("LoanSkipApprover")
+  loanSkipRejections   LoanSkipRequest[]    @relation("LoanSkipRejector")
+  foreclosures         LoanForeclosure[]    @relation("ForeclosureApplicant")
+  rectificationsRequested AttendanceRectification[]
+  rectificationsApproved  AttendanceRectification[] @relation("RectificationApprover")
+  leaveBalances           LeaveBalance[]
+  notifications           Notification[]
+}
+
+model TeacherProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qualification  String
+  experienceYears Int
+  salaryAmount   Float
+  workingStatus  String   @default("ACTIVE") // ACTIVE, ON_LEAVE, RESIGNED
+  
+  prevExperiences String? // Stringified JSON array
+
+  // Bank Details
+  bankName      String?
+  bankAccountNo String?
+  bankIfsc      String?
+  bankBranch    String?
+
+  // Personal Details
+  bloodGroup            String?
+  aadhaarNo             String?
+  permanentAddress      String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+
+  classTeacherOf ClassSection?
+  timetables     Timetable[]
+  salaryRecords  SalaryRecord[]
+  salaryTemplateId String?
+  salaryTemplate   SalaryTemplate? @relation(fields: [salaryTemplateId], references: [id], onDelete: SetNull)
+  variablePays     VariablePay[]
+}
+
+model ParentProfile {
+  id       String            @id @default(uuid())
+  userId   String            @unique
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relation String            // FATHER, MOTHER, GUARDIAN
+  students ParentToStudent[]
+}
+
+model Student {
+  id            String            @id @default(uuid())
+  schoolId      String
+  fullName      String
+  rollNo        String
+  classSectionId String?
+  classSection  ClassSection?     @relation(fields: [classSectionId], references: [id], onDelete: SetNull)
+  gender        String
+  dateOfBirth   DateTime
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  parents       ParentToStudent[]
+  attendance    Attendance[]      @relation("StudentAttendance")
+  marks         Mark[]
+  feeRecords    FeeRecord[]
+
+  busRouteId    String?
+  busRoute      BusRoute?         @relation(fields: [busRouteId], references: [id], onDelete: SetNull)
+
+  leaveRequests LeaveRequest[]
+}
+
+model ParentToStudent {
+  parentId  String
+  studentId String
+  parent    ParentProfile @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student   Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([parentId, studentId])
+}
+
+model Class {
+  id        String         @id @default(uuid())
+  schoolId  String
+  school    School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name      String         // e.g. "Class 6"
+  sections  ClassSection[]
+  exams     Exam[]
+}
+
+model ClassSection {
+  id             String          @id @default(uuid())
+  classId        String
+  class          Class           @relation(fields: [classId], references: [id], onDelete: Cascade)
+  name           String          // e.g. "A"
+  classTeacherId String?         @unique
+  classTeacher   TeacherProfile? @relation(fields: [classTeacherId], references: [id])
+  
+  students       Student[]
+  timetables     Timetable[]
+  homeworks      Homework[]
+  learningDiaries LearningDiary[]
+  resources      ClassResource[]
+}
+
+model Attendance {
+  id         String   @id @default(uuid())
+  date       DateTime // Date only (no time)
+  studentId  String
+  student    Student  @relation("StudentAttendance", fields: [studentId], references: [id], onDelete: Cascade)
+  status     String   // PRESENT, ABSENT, LEAVE
+  markedById String
+  markedBy   User     @relation("MarkedBy", fields: [markedById], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([date, studentId])
+}
+
+model LeaveRequest {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation("Applicant", fields: [userId], references: [id], onDelete: Cascade)
+  leaveType     String   // e.g. "Casual Leave", "Sick Leave"
+  leaveTypeId   String?
+  leaveTypeRel  LeaveType? @relation(fields: [leaveTypeId], references: [id], onDelete: SetNull)
+  fromDate      DateTime
+  toDate        DateTime
+  daysCount     Float    @default(1.0)
+  reason        String
+  attachmentUrl String?
+  isEmergency   Boolean  @default(false)
+  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  rejectionReason String?
+  approvedById  String?
+  approver      User?    @relation("Approver", fields: [approvedById], references: [id])
+  approvedAt    DateTime?
+  rejectedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  studentId     String?
+  student       Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model SalaryRecord {
+  id              String   @id @default(uuid())
+  teacherId       String
+  teacher         TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  month           String   // e.g. "May"
+  year            Int      // e.g. 2026
+  amount          Float    // Represents net salary
+  status          String   // PENDING, PAID
+  generatedAt     DateTime @default(now())
+
+  baseSalary      Float    @default(0.0)
+  workingDays     Int      @default(0)
+  presentDays     Float    @default(0.0)
+  halfDays        Float    @default(0.0)
+  absentDays      Float    @default(0.0)
+  leaveDays       Float    @default(0.0)
+  lopDeduction    Float    @default(0.0)
+  loanDeduction   Float    @default(0.0)
+  bonus           Float    @default(0.0)
+  allowances      Float    @default(0.0)
+  remarks         String?
+
+  repayments      LoanRepayment[]
+  components      SalaryRecordComponent[]
+}
+
+model Timetable {
+  id             String         @id @default(uuid())
+  classSectionId String
+  classSection   ClassSection   @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  dayOfWeek      Int            // 1 = Monday, ..., 6 = Saturday
+  startTime      String         // e.g. "08:30 AM"
+  endTime        String         // e.g. "09:30 AM"
+  subject        String
+  teacherId      String
+  teacher        TeacherProfile @relation(fields: [teacherId], references: [id])
+  roomNo         String
+}
+
+model Homework {
+  id             String       @id @default(uuid())
+  classSectionId String
+  classSection   ClassSection @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  subject        String
+  title          String
+  description    String
+  dueDate        DateTime
+  fileUrl        String?
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model LearningDiary {
+  id             String       @id @default(uuid())
+  classSectionId String
+  classSection   ClassSection @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  date           DateTime
+  subject        String
+  details        String
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model Exam {
+  id        String   @id @default(uuid())
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  name      String   // e.g. "Unit Test 1"
+  date      DateTime
+  marks     Mark[]
+}
+
+model Mark {
+  id            String   @id @default(uuid())
+  examId        String
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject       String
+  marksObtained Float
+  maxMarks      Float
+}
+
+model BusRoute {
+  id            String   @id @default(uuid())
+  schoolId      String
+  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  routeName     String   // e.g. "Route 1"
+  busNo         String
+  driverName    String
+  driverContact String
+  stops         BusStop[]
+  students      Student[]
+  location      BusLocation?
+}
+
+model BusLocation {
+  id         String   @id @default(uuid())
+  busRouteId String   @unique
+  latitude   Float
+  longitude  Float
+  updatedAt  DateTime @updatedAt
+  
+  busRoute   BusRoute @relation(fields: [busRouteId], references: [id], onDelete: Cascade)
+}
+
+model BusStop {
+  id          String   @id @default(uuid())
+  routeId     String
+  route       BusRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  stopName    String
+  arrivalTime String   // e.g. "07:00 AM"
+  sequenceNo  Int
+}
+
+model Expense {
+  id           String   @id @default(uuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  category     String   // Infrastructure, Transportation, Salary, Event, etc.
+  amount       Float
+  description  String
+  date         DateTime
+  recordedById String
+  recordedBy   User     @relation(fields: [recordedById], references: [id])
+}
+
+model Event {
+  id             String   @id @default(uuid())
+  schoolId       String
+  school         School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  date           DateTime
+  type           String   // e.g. "EVENT", "PROGRAM", "PARENT_MEETING", "TEACHER_MEETING"
+  targetAudience String   // ALL, PARENTS, TEACHERS
+}
+
+model Complaint {
+  id            String   @id @default(uuid())
+  schoolId      String
+  creatorId     String
+  creator       User     @relation("ComplaintCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  category      String   // Student, Cleaning, Teacher, Maintenance, Transport
+  description   String
+  status        String   // PENDING, RESOLVED
+  resolvedById  String?
+  resolver      User?    @relation("ComplaintResolver", fields: [resolvedById], references: [id])
+  createdAt     DateTime @default(now())
+}
+
+model Notice {
+  id            String   @id @default(uuid())
+  schoolId      String
+  school        School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  date           DateTime @default(now())
+  attachmentUrl String?
+}
+
+model FeeRecord {
+  id         String   @id @default(uuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  category   String   // TUITION, VAN, OTHER
+  amount     Float
+  paidAmount Float    @default(0.0)
+  status     String   @default("PENDING") // PENDING, PARTIAL, PAID
+  dueDate    DateTime
+  updatedAt  DateTime @updatedAt
+}
+
+model ClassResource {
+  id             String       @id @default(uuid())
+  classSectionId String
+  classSection   ClassSection @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  subject        String
+  title          String
+  description    String?
+  resourceType   String       // PDF, IMAGE, VIDEO
+  fileUrl        String       // file URL or placeholder path
+  createdById    String
+  createdBy      User         @relation("ResourceCreator", fields: [createdById], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  title       String
+  content     String
+  type        String   @default("GENERAL") // REMINDER, GENERAL
+  createdAt   DateTime @default(now())
+}
+
+model FaceEmbedding {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  createdById String
+  embedding   String   // JSON string of 512-d float list
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation("FaceEmbeddingUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation("FaceEmbeddingAdmin", fields: [createdById], references: [id], onDelete: Cascade)
+}
+
+model StaffAttendance {
+  id           String    @id @default(uuid())
+  userId       String
+  date         String    // YYYY-MM-DD
+  firstCheckIn DateTime?
+  lastCheckOut DateTime?
+  totalHours   Float?
+  status       String    @default("PRESENT")
+  isAutoCheckout Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model StaffAttendanceLog {
+  id          String   @id @default(uuid())
+  userId      String
+  timestamp   DateTime @default(now())
+  type        String   // CHECK_IN, CHECK_OUT
+  success     Boolean
+  confidence  Float?
+  latitude    Float?
+  longitude   Float?
+  isInsideGeo Boolean?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SchoolHoliday {
+  id          String   @id @default(uuid())
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  title       String   // e.g. "Independence Day", "Sunday"
+  date        DateTime // The specific holiday date (no time component)
+  type        String   // HOLIDAY, WEEKOFF
+  createdById String
+  createdBy   User     @relation("HolidayCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([schoolId, date])
+}
+
+model LoanRequest {
+  id                 String   @id @default(uuid())
+  userId             String
+  amount             Float
+  reason             String
+  installments       Int      // Number of months to repay
+  repaidAmount       Float    @default(0.0)
+  status             String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedById       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  type               String            @default("LOAN") // LOAN, ADVANCE
+  remainingBalance   Float             @default(0.0)
+  isPaused           Boolean           @default(false)
+  rejectionReason    String?
+  emiStartDate       DateTime?
+
+  user               User              @relation("LoanApplicant", fields: [userId], references: [id], onDelete: Cascade)
+  approvedBy         User?             @relation("LoanApprover", fields: [approvedById], references: [id])
+  repayments         LoanRepayment[]
+  foreclosure        LoanForeclosure?
+  skipRequests       LoanSkipRequest[]
+}
+
+model LeaveType {
+  id                  String   @id @default(uuid())
+  schoolId            String
+  name                String   // e.g. "Casual Leave", "Sick Leave", "Unpaid Leave"
+  code                String   // e.g. "CASUAL", "SICK", "UNPAID"
+  isPaid              Boolean  @default(true)
+  isUnpaid            Boolean  @default(false)
+  maxDays             Int      @default(12)
+  period              String   @default("YEARLY") // "MONTHLY" or "YEARLY"
+  maxConsecutiveDays  Int?     @default(5)
+  minNoticePeriodDays Int?     @default(2)
+  carryForwardAllowed Boolean  @default(false)
+  maxCarryForwardDays Int?     @default(0)
+  requiresAttachment  Boolean  @default(false)
+  attachmentAfterDays Int?     @default(2)
+  requiresApproval    Boolean  @default(true)
+  isActive            Boolean  @default(true)
+  description         String?
+  maxDaysMid          Int?
+  maxDaysSenior       Int?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  school              School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  leaves              LeaveRequest[]
+  balances            LeaveBalance[]
+
+  @@unique([schoolId, code])
+}
+
+model LoanSkipRequest {
+  id              String   @id @default(uuid())
+  loanId          String
+  userId          String
+  schoolId        String
+  fromMonth       Int      // 1-12
+  fromYear        Int
+  toMonth         Int      // 1-12
+  toYear          Int
+  numberOfMonths  Int
+  reason          String?
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED, CANCELLED
+  approvedById    String?
+  approvedAt      DateTime?
+  approvalComment String?
+  rejectionReason String?
+  rejectedById    String?
+  rejectedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  loan            LoanRequest @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  user            User        @relation("LoanSkipApplicant", fields: [userId], references: [id], onDelete: Cascade)
+  school          School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  approvedBy      User?       @relation("LoanSkipApprover", fields: [approvedById], references: [id])
+  rejectedBy      User?       @relation("LoanSkipRejector", fields: [rejectedById], references: [id])
+
+  @@index([loanId, status])
+  @@index([userId, status])
+  @@index([schoolId, status])
+  @@index([fromYear, fromMonth])
+}
+
+model LoanRepayment {
+  id             String   @id @default(uuid())
+  loanId         String
+  repaymentType  String   @default("PAYROLL_DEDUCTION") // PAYROLL_DEDUCTION, MANUAL_FORECLOSURE, FULL_AND_FINAL
+  salaryRecordId String?
+  amount         Float
+  month          Int?
+  year           Int?
+  referenceId    String?  // Cheque, UPI transaction ID
+  remarks        String?
+  paymentDate    DateTime @default(now())
+
+  loan           LoanRequest   @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  salaryRecord   SalaryRecord? @relation(fields: [salaryRecordId], references: [id], onDelete: SetNull)
+}
+
+model AttendanceRectification {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date                String   // YYYY-MM-DD
+  originalAttendance  String?  // e.g. "Absent" or "09:45 AM"
+  requestedAttendance String?  // e.g. "Present" or "09:05 AM"
+  checkInTime         String?  // e.g. "09:00 AM"
+  checkOutTime        String?  // e.g. "05:00 PM"
+  reason              String
+  status              String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedById        String?
+  approvedBy          User?    @relation("RectificationApprover", fields: [approvedById], references: [id])
+  rejectionReason     String?
+  approvedAt          DateTime?
+  rejectedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model LoanForeclosure {
+  id                   String   @id @default(uuid())
+  loanId               String   @unique
+  userId               String
+  schoolId             String
+  outstandingBalance   Float
+  processingFee        Float    @default(0.0)
+  totalPayableAmount   Float
+  status               String   @default("REQUESTED") // REQUESTED, PENDING_APPROVAL, APPROVED, REJECTED, SETTLEMENT_PENDING, SETTLED, CANCELLED
+  deductionMethod      String   @default("SALARY_DEDUCTION") // SALARY_DEDUCTION, MANUAL_SETTLEMENT
+  salaryDeductionMonth String?
+  salaryDeductionYear  Int?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  loan                 LoanRequest @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  user                 User        @relation("ForeclosureApplicant", fields: [userId], references: [id], onDelete: Cascade)
+  school               School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+enum ComponentCategory {
+  FIXED_EARNING
+  VARIABLE_EARNING
+  REIMBURSEMENT
+  PERQUISITE
+  PRE_TAX_DEDUCTION
+  POST_TAX_DEDUCTION
+  STATUTORY_DEDUCTION
+  NON_STATUTORY_DEDUCTION
+  EMPLOYER_CONTRIBUTION
+}
+
+enum CalculationType {
+  FLAT_AMOUNT
+  PERCENTAGE_OF_CTC
+  PERCENTAGE_OF_BASIC
+  PERCENTAGE_OF_GROSS
+  ATTENDANCE_BASED
+  FIXED_MONTHLY
+  FIXED_WEEKLY
+  DAILY_RATE
+  HOURLY_RATE
+  SLAB_BASED
+  STATUTORY_AUTO
+}
+
+model SalaryComponent {
+  id           String              @id @default(uuid())
+  schoolId     String
+  school       School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name         String
+  category     ComponentCategory
+  isTaxable    Boolean             @default(true)
+  isProrated   Boolean             @default(true)
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  
+  templateComponents TemplateComponent[]
+  variablePays       VariablePay[]
+}
+
+model SalaryTemplate {
+  id                 String              @id @default(uuid())
+  schoolId           String
+  school             School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  overtimeMultiplier Float?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  
+  components         TemplateComponent[]
+  teachers           TeacherProfile[]
+}
+
+model TemplateComponent {
+  id              String          @id @default(uuid())
+  templateId      String
+  componentId     String
+  calculationType CalculationType
+  value           Float
+  calculateOnMax  Float?          // e.g. 15000 limit
+  activeOnlyIfGrossLessThan Float? // e.g. 21000 threshold
+
+  template        SalaryTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  component       SalaryComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, componentId])
+}
+
+model SalaryRecordComponent {
+  id             String            @id @default(uuid())
+  salaryRecordId String
+  salaryRecord   SalaryRecord      @relation(fields: [salaryRecordId], references: [id], onDelete: Cascade)
+  name           String
+  amount         Float
+  category       ComponentCategory
+}
+
+model VariablePay {
+  id          String   @id @default(uuid())
+  teacherId   String
+  componentId String
+  month       String   // "January", "February", etc.
+  year        Int
+  amount      Float
+  remarks     String?
+  isArrear    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  teacher     TeacherProfile  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  component   SalaryComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+}
+
+model LeaveBalance {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveTypeId     String?
+  leaveType       LeaveType? @relation(fields: [leaveTypeId], references: [id], onDelete: SetNull)
+  leaveTypeCode   String   // CASUAL, SICK, EARNED, EMERGENCY, MATERNITY, PATERNITY, PERMISSION, OTHER
+  allocated       Float    @default(12.0)
+  used            Float    @default(0.0)
+  adjusted        Float    @default(0.0)
+  remaining       Float    @default(12.0)
+  year            Int      @default(2026)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, leaveTypeCode, year])
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  schoolId      String?
+  userId        String?
+  userFullName  String?
+  userRole      String?
+  action        String   // APPROVE_LEAVE, REJECT_LEAVE, ADJUST_BALANCE, APPROVE_RECTIFICATION, REJECT_RECTIFICATION, CREATE_POLICY, UPDATE_POLICY
+  entityType    String   // LEAVE_REQUEST, ATTENDANCE_RECTIFICATION, LEAVE_BALANCE, LEAVE_POLICY
+  entityId      String
+  previousValue String?
+  newValue      String?
+  reason        String?
+  ipAddress     String?
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("LEAVE") // LEAVE, RECTIFICATION, SYSTEM, GENERAL
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
