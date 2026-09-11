@@ -1,6 +1,6 @@
 class ApiConstants {
   // Use localhost for local debug, or standard machine IP
-  static const String baseUrl = 'http://10.187.83.15:5000/api';
+  static const String baseUrl = 'http://localhost:5000/api';
 
   // Auth
   static const String register = '/auth/register';
