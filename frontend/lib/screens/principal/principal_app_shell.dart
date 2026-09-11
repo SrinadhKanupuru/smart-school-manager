@@ -1,40 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../core/theme/app_colors.dart';
-import 'navigation_provider.dart';
-import 'auth_role_provider.dart';
-import '../widgets/common/sidebar.dart';
-import '../widgets/common/app_header.dart';
-import '../widgets/common/search_dialog.dart';
-import '../screens/dashboard/dashboard_screen.dart';
-import '../screens/principal/principal_screen.dart';
-import '../screens/teachers/teachers_screen.dart';
-import '../screens/students/students_screen.dart';
-import '../screens/parent_portal/parent_portal_screen.dart';
-import '../screens/attendance/attendance_screen.dart';
-import '../screens/leave_management/leave_management_screen.dart';
-import '../screens/academics/academics_screen.dart';
-import '../screens/account/account_screen.dart';
-import '../screens/reports/reports_screen.dart';
-import '../screens/settings/settings_screen.dart';
+import '../../core/theme/app_colors.dart';
+import 'principal_navigation_provider.dart';
+import 'principal_dashboard.dart';
+import 'principal_notices_screen.dart';
+import '../../widgets/principal/principal_sidebar.dart';
+import '../../widgets/principal/principal_header.dart';
+import '../../widgets/common/search_dialog.dart';
+import '../teachers/teachers_screen.dart';
+import '../students/students_screen.dart';
+import '../attendance/attendance_screen.dart';
+import '../leave_management/leave_management_screen.dart';
+import '../academics/academics_screen.dart';
+import '../account/account_screen.dart';
+import '../reports/reports_screen.dart';
+import '../settings/settings_screen.dart';
 
-class AppShell extends StatefulWidget {
-  final VoidCallback? onSwitchToPrincipal;
+class PrincipalAppShell extends StatefulWidget {
+  final VoidCallback? onSwitchToSuperAdmin;
 
-  const AppShell({super.key, this.onSwitchToPrincipal});
+  const PrincipalAppShell({super.key, this.onSwitchToSuperAdmin});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  State<PrincipalAppShell> createState() => _PrincipalAppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _PrincipalAppShellState extends State<PrincipalAppShell> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
-    final nav = Provider.of<NavigationProvider>(context);
-    final auth = Provider.of<AuthRoleProvider>(context, listen: false);
+    final nav = Provider.of<PrincipalNavigationProvider>(context);
 
     // Global Ctrl+K / Cmd+K listener
     return CallbackShortcuts(
@@ -55,32 +52,26 @@ class _AppShellState extends State<AppShell> {
             return Scaffold(
               key: _scaffoldKey,
               backgroundColor: AppColors.background,
-              drawer: isDesktop ? null : const Drawer(child: AppSidebar(isDrawer: true)),
+              drawer: isDesktop ? null : const Drawer(child: PrincipalSidebar(isDrawer: true)),
               body: Row(
                 children: [
                   // Permanent left sidebar on desktop
-                  if (isDesktop) const AppSidebar(),
+                  if (isDesktop) const PrincipalSidebar(),
 
                   // Main content column
                   Expanded(
                     child: Column(
                       children: [
                         // Top Header
-                        AppHeader(
+                        PrincipalHeader(
                           showMenuButton: !isDesktop,
                           onMenuPressed: () {
                             _scaffoldKey.currentState?.openDrawer();
                           },
-                          onSwitchToPrincipal: () {
-                            if (widget.onSwitchToPrincipal != null) {
-                              widget.onSwitchToPrincipal!();
-                            } else {
-                              auth.loginAsPrincipal();
-                            }
-                          },
+                          onSwitchToSuperAdmin: widget.onSwitchToSuperAdmin,
                         ),
 
-                        // Active Module Screen with subtle transition
+                        // Active Principal Module Screen
                         Expanded(
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 200),
@@ -104,29 +95,27 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
-  Widget _buildCurrentScreen(AppModule module) {
+  Widget _buildCurrentScreen(PrincipalModule module) {
     switch (module) {
-      case AppModule.dashboard:
-        return const DashboardScreen();
-      case AppModule.principal:
-        return const PrincipalScreen();
-      case AppModule.teachers:
+      case PrincipalModule.dashboard:
+        return const PrincipalDashboardScreen();
+      case PrincipalModule.teachers:
         return const TeachersScreen();
-      case AppModule.students:
+      case PrincipalModule.students:
         return const StudentsScreen();
-      case AppModule.parentPortal:
-        return const ParentPortalScreen();
-      case AppModule.attendance:
+      case PrincipalModule.attendance:
         return const AttendanceScreen();
-      case AppModule.leaveManagement:
+      case PrincipalModule.leaveManagement:
         return const LeaveManagementScreen();
-      case AppModule.academics:
+      case PrincipalModule.academics:
         return const AcademicsScreen();
-      case AppModule.account:
+      case PrincipalModule.account:
         return const AccountScreen();
-      case AppModule.reports:
+      case PrincipalModule.reports:
         return const ReportsScreen();
-      case AppModule.settings:
+      case PrincipalModule.notices:
+        return const PrincipalNoticesScreen();
+      case PrincipalModule.settings:
         return const SettingsScreen();
     }
   }

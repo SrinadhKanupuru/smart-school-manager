@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_decorations.dart';
 import '../../data/mock_data.dart';
+import '../../data/principal_mock_data.dart';
 import '../../models/principal_model.dart';
 import '../../widgets/common/section_header.dart';
+import '../../app/auth_role_provider.dart';
 
 class PrincipalScreen extends StatefulWidget {
   const PrincipalScreen({super.key});
@@ -19,6 +22,7 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthRoleProvider>(context, listen: false);
     final principals = MockData.principals.where((p) {
       final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           p.email.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -32,14 +36,115 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Page Header with Add Principal Action
+          // Page Header with Add Principal Action & Launch Portal Button
           PageHeader(
             title: 'Principal Management',
             subtitle: 'Supervise campus headmasters and campus leadership across all branches',
-            trailing: ElevatedButton.icon(
-              onPressed: () => _showAddPrincipalModal(context),
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Add Principal'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    auth.loginAsPrincipal();
+                  },
+                  icon: const Icon(Icons.admin_panel_settings_rounded, size: 18),
+                  label: Text('Open Principal Portal (${PrincipalMockData.principalName})', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton.icon(
+                  onPressed: () => _showAddPrincipalModal(context),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text('Add Principal'),
+                ),
+              ],
+            ),
+          ),
+
+          // Dedicated Principal Portal Highlight Card
+          Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2E1065), Color(0xFF5B21B6), Color(0xFF7C3AED)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.school_rounded, color: Colors.white, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Active Principal: ${PrincipalMockData.principalName}',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Online',
+                              style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Dr. Rajeshwari Raman oversees 1,248 students, 86 teachers, 96.4% attendance rate, and campus operations at Main City Campus.',
+                        style: GoogleFonts.inter(color: const Color(0xFFE9D5FF), fontSize: 12.5),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF6D28D9),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => auth.loginAsPrincipal(),
+                  icon: const Icon(Icons.launch_rounded, size: 16, color: Color(0xFF6D28D9)),
+                  label: Text('Enter Principal Dashboard', style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 13, color: const Color(0xFF6D28D9))),
+                ),
+              ],
             ),
           ),
 

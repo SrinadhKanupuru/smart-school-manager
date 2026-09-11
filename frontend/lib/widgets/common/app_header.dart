@@ -3,22 +3,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../app/navigation_provider.dart';
+import '../../app/auth_role_provider.dart';
 import 'search_dialog.dart';
 import 'notification_modal.dart';
 
 class AppHeader extends StatelessWidget {
   final VoidCallback? onMenuPressed;
   final bool showMenuButton;
+  final VoidCallback? onSwitchToPrincipal;
 
   const AppHeader({
     super.key,
     this.onMenuPressed,
     this.showMenuButton = false,
+    this.onSwitchToPrincipal,
   });
 
   @override
   Widget build(BuildContext context) {
     final nav = Provider.of<NavigationProvider>(context);
+    final auth = Provider.of<AuthRoleProvider>(context, listen: false);
     final unreadCount = nav.unreadNotificationCount;
 
     return Container(
@@ -95,9 +99,57 @@ class AppHeader extends StatelessWidget {
 
           const SizedBox(width: 16),
 
-          // Right Area: Notification Bell + Super Admin Profile
+          // Right Area: Fast Switch to Principal + Notifications + Super Admin Profile
           Row(
             children: [
+              // Fast 1-Click Switch to Principal Button
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    if (onSwitchToPrincipal != null) {
+                      onSwitchToPrincipal!();
+                    } else {
+                      auth.loginAsPrincipal();
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F3FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFDDD6FE), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.08),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.admin_panel_settings_rounded, size: 16, color: Color(0xFF7C3AED)),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Principal Portal',
+                          style: GoogleFonts.inter(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF7C3AED),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF7C3AED)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
               // Notification Bell
               Stack(
                 clipBehavior: Clip.none,
@@ -140,15 +192,26 @@ class AppHeader extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Container(height: 28, width: 1, color: AppColors.border),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
 
               // Super Admin Profile Menu
               PopupMenuButton<String>(
                 offset: const Offset(0, 52),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'switch_principal',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.admin_panel_settings_outlined, size: 18, color: Color(0xFF8B5CF6)),
+                        const SizedBox(width: 10),
+                        Text('Switch to Principal View', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF8B5CF6))),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
                   PopupMenuItem(
                     value: 'profile',
                     child: Row(
@@ -176,20 +239,24 @@ class AppHeader extends StatelessWidget {
                       children: [
                         const Icon(Icons.logout_rounded, size: 18, color: AppColors.danger),
                         const SizedBox(width: 10),
-                        Text('Log Out', style: GoogleFonts.inter(fontSize: 13, color: AppColors.danger)),
+                        Text('Log Out to Portal Login', style: GoogleFonts.inter(fontSize: 13, color: AppColors.danger, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
                 ],
                 onSelected: (val) {
-                  if (val == 'settings') {
+                  if (val == 'switch_principal') {
+                    if (onSwitchToPrincipal != null) {
+                      onSwitchToPrincipal!();
+                    } else {
+                      auth.loginAsPrincipal();
+                    }
+                  } else if (val == 'settings') {
                     nav.setModule(AppModule.settings);
                   } else if (val == 'profile') {
                     nav.setModule(AppModule.settings);
                   } else if (val == 'logout') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Logged in as Super Admin Srinadh')),
-                    );
+                    auth.logout();
                   }
                 },
                 child: Row(
