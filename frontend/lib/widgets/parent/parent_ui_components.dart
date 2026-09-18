@@ -76,8 +76,8 @@ class ParentDesignTokens {
       ];
 }
 
-/// Standard Parent Portal Card with optional hover lift
-class ParentCard extends StatefulWidget {
+/// Standard Parent Portal Card with stable hover
+class ParentCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry? margin;
@@ -100,50 +100,39 @@ class ParentCard extends StatefulWidget {
   });
 
   @override
-  State<ParentCard> createState() => _ParentCardState();
-}
-
-class _ParentCardState extends State<ParentCard> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final effectiveRadius = widget.borderRadius ?? ParentDesignTokens.radiusLg;
-    final isClickable = widget.onTap != null;
+    final effectiveRadius = widgetBorderRadius(borderRadius);
+    final isClickable = onTap != null;
 
-    Widget content = AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
-      margin: widget.margin,
-      padding: widget.padding,
-      transform: _isHovered && widget.enableHover && isClickable
-          ? (Matrix4.identity()..translateByDouble(0, -2, 0, 0))
-          : Matrix4.identity(),
+    Widget cardContent = Container(
+      margin: margin,
+      padding: padding,
       decoration: BoxDecoration(
-        color: widget.backgroundColor ?? ParentDesignTokens.surface,
+        color: backgroundColor ?? ParentDesignTokens.surface,
         borderRadius: effectiveRadius,
-        border: widget.border ?? Border.all(color: ParentDesignTokens.border),
-        boxShadow: _isHovered && widget.enableHover
-            ? ParentDesignTokens.shadowHover
-            : ParentDesignTokens.shadowSm,
+        border: border ?? Border.all(color: ParentDesignTokens.border),
+        boxShadow: ParentDesignTokens.shadowSm,
       ),
-      child: widget.child,
+      child: child,
     );
 
     if (isClickable) {
-      content = MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: content,
+      return Material(
+        color: Colors.transparent,
+        borderRadius: effectiveRadius,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: effectiveRadius,
+          hoverColor: ParentDesignTokens.surfaceHover,
+          child: cardContent,
         ),
       );
     }
 
-    return content;
+    return cardContent;
   }
+
+  static BorderRadius widgetBorderRadius(BorderRadius? r) => r ?? ParentDesignTokens.radiusLg;
 }
 
 /// Status and category badge pill
@@ -315,7 +304,7 @@ class ParentSectionHeader extends StatelessWidget {
   }
 }
 
-/// Staggered Entrance Animation Container
+/// Staggered Entrance Container
 class ParentAnimatedEntrance extends StatelessWidget {
   final Widget child;
   final int index;
@@ -334,21 +323,7 @@ class ParentAnimatedEntrance extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      duration: duration + Duration(milliseconds: index * delay.inMilliseconds),
-      curve: Curves.easeOutCubic,
-      builder: (context, progress, animChild) {
-        return Opacity(
-          opacity: progress.clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(0, (1.0 - progress) * slideOffset),
-            child: animChild,
-          ),
-        );
-      },
-      child: child,
-    );
+    return child;
   }
 }
 
@@ -538,87 +513,64 @@ class _ParentButtonState extends State<ParentButton> {
         fg = Colors.white;
         break;
       case ParentButtonVariant.text:
-        bg = _isHovered && isEnabled ? ParentDesignTokens.surfaceMuted : Colors.transparent;
+        bg = Colors.transparent;
         fg = isEnabled ? ParentDesignTokens.brand : ParentDesignTokens.textMuted;
         break;
     }
 
-    final double scale = _isPressed ? 0.98 : (_isHovered ? 1.01 : 1.0);
-
-    Widget buttonContent = AnimatedScale(
-      scale: isEnabled ? scale : 1.0,
-      duration: const Duration(milliseconds: 100),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(10),
-          border: border,
-          boxShadow: isEnabled && _isHovered && widget.variant == ParentButtonVariant.primary
-              ? [
-                  BoxShadow(
-                    color: ParentDesignTokens.brand.withValues(alpha: 0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (widget.isLoading) ...[
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(fg),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ] else if (widget.icon != null) ...[
-              Icon(widget.icon, size: widget.fontSize + 3, color: fg),
-              const SizedBox(width: 7),
-            ],
-            Text(
-              widget.label,
-              style: GoogleFonts.inter(
-                fontSize: widget.fontSize,
-                fontWeight: FontWeight.w600,
-                color: fg,
-                letterSpacing: -0.1,
+    Widget buttonChild = Container(
+      padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+        border: border,
+      ),
+      child: Row(
+        mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (widget.isLoading) ...[
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(fg),
               ),
             ),
+            const SizedBox(width: 8),
+          ] else if (widget.icon != null) ...[
+            Icon(widget.icon, size: widget.fontSize + 3, color: fg),
+            const SizedBox(width: 7),
           ],
-        ),
+          Text(
+            widget.label,
+            style: GoogleFonts.inter(
+              fontSize: widget.fontSize,
+              fontWeight: FontWeight.w600,
+              color: fg,
+              letterSpacing: -0.1,
+            ),
+          ),
+        ],
       ),
     );
 
     if (!isEnabled) {
       return widget.fullWidth
-          ? SizedBox(width: double.infinity, child: buttonContent)
-          : buttonContent;
+          ? SizedBox(width: double.infinity, child: buttonChild)
+          : buttonChild;
     }
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() {
-        _isHovered = false;
-        _isPressed = false;
-      }),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
         onTap: widget.onPressed,
+        borderRadius: BorderRadius.circular(10),
         child: widget.fullWidth
-            ? SizedBox(width: double.infinity, child: buttonContent)
-            : buttonContent,
+            ? SizedBox(width: double.infinity, child: buttonChild)
+            : buttonChild,
       ),
     );
   }

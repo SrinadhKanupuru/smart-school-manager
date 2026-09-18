@@ -714,24 +714,17 @@ class _ParentAttendanceScreenState extends State<ParentAttendanceScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: heightFraction),
-                      duration: Duration(milliseconds: 500 + (i * 100)),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, val, _) {
-                        return Container(
-                          width: 32,
-                          height: (val * 100).clamp(10, 100),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [ParentDesignTokens.brandLight, ParentDesignTokens.brand],
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        );
-                      },
+                    Container(
+                      width: 32,
+                      height: (heightFraction * 100).clamp(10, 100),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [ParentDesignTokens.brandLight, ParentDesignTokens.brand],
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(

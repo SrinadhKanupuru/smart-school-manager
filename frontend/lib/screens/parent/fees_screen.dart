@@ -155,18 +155,11 @@ class ParentFeesScreen extends StatelessWidget {
                   const SizedBox(height: 18),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: progressRatio),
-                      duration: const Duration(milliseconds: 700),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, val, _) {
-                        return LinearProgressIndicator(
-                          value: val,
-                          minHeight: 12,
-                          backgroundColor: const Color(0xFFFEF2F2),
-                          valueColor: const AlwaysStoppedAnimation<Color>(ParentDesignTokens.emerald),
-                        );
-                      },
+                    child: LinearProgressIndicator(
+                      value: progressRatio,
+                      minHeight: 12,
+                      backgroundColor: const Color(0xFFFEF2F2),
+                      valueColor: const AlwaysStoppedAnimation<Color>(ParentDesignTokens.emerald),
                     ),
                   ),
                   const SizedBox(height: 12),

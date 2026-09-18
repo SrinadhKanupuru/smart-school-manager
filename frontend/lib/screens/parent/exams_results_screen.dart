@@ -314,18 +314,11 @@ class _ParentExamsResultsScreenState extends State<ParentExamsResultsScreen> {
               const SizedBox(height: 6),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0, end: percent),
-                  duration: const Duration(milliseconds: 600),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, val, _) {
-                    return LinearProgressIndicator(
-                      value: val,
-                      minHeight: 9,
-                      backgroundColor: ParentDesignTokens.surfaceMuted,
-                      valueColor: AlwaysStoppedAnimation<Color>(barColor),
-                    );
-                  },
+                child: LinearProgressIndicator(
+                  value: percent,
+                  minHeight: 9,
+                  backgroundColor: ParentDesignTokens.surfaceMuted,
+                  valueColor: AlwaysStoppedAnimation<Color>(barColor),
                 ),
               ),
             ],
