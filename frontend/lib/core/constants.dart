@@ -1,6 +1,18 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
-  // Use localhost for local debug, or standard machine IP
-  static const String baseUrl = 'http://localhost:5000/api';
+  // Dynamic host determination: handles Web, Mobile LAN, and local desktop seamlessly
+  static String get baseUrl {
+    if (kIsWeb) {
+      try {
+        final host = Uri.base.host;
+        if (host.isNotEmpty) {
+          return 'http://$host:5000/api';
+        }
+      } catch (_) {}
+    }
+    return 'http://localhost:5000/api';
+  }
 
   // Auth
   static const String register = '/auth/register';
