@@ -3,7 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/principal_mock_data.dart';
+import '../../data/parent_mock_data.dart';
 import '../../app/auth_role_provider.dart';
+import '../../auth/models/user_model.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class SaasLoginScreen extends StatefulWidget {
   final Function(AppActiveRole role)? onLoginSuccess;
@@ -27,8 +30,16 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
       _selectedRole = role;
       if (role == AppActiveRole.principal) {
         _emailController.text = 'principal.main@smartschool.edu';
+        _passwordController.text = '••••••••••••';
+      } else if (role == AppActiveRole.faculty) {
+        _emailController.text = 'faculty@smartschool.com';
+        _passwordController.text = '••••••••••••';
+      } else if (role == AppActiveRole.parent) {
+        _emailController.text = 'parent@smartschool.com';
+        _passwordController.text = '••••••••••••';
       } else {
         _emailController.text = 'admin.srinadh@smartschool.edu';
+        _passwordController.text = '••••••••••••';
       }
     });
   }
@@ -39,14 +50,80 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         final auth = Provider.of<AuthRoleProvider>(context, listen: false);
+        final authProv = Provider.of<AuthProvider>(context, listen: false);
+
         if (_selectedRole == AppActiveRole.principal) {
+          authProv.setMockUser(UserModel.principalDefault());
           auth.loginAsPrincipal();
+        } else if (_selectedRole == AppActiveRole.faculty) {
+          authProv.setMockUser(UserModel.facultyDefault());
+          auth.loginAsFaculty(UserModel.facultyDefault());
+        } else if (_selectedRole == AppActiveRole.parent) {
+          authProv.setMockUser(UserModel.parentDefault());
+          auth.loginAsParent(UserModel.parentDefault());
         } else {
+          authProv.setMockUser(UserModel.superAdminDefault());
           auth.loginAsSuperAdmin();
         }
         widget.onLoginSuccess?.call(_selectedRole);
       }
     });
+  }
+
+  Color get _activeThemeColor {
+    switch (_selectedRole) {
+      case AppActiveRole.principal:
+        return const Color(0xFF7C3AED);
+      case AppActiveRole.faculty:
+        return const Color(0xFF059669);
+      case AppActiveRole.parent:
+        return const Color(0xFFD97706);
+      case AppActiveRole.superAdmin:
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  IconData get _activeRoleIcon {
+    switch (_selectedRole) {
+      case AppActiveRole.principal:
+        return Icons.admin_panel_settings_rounded;
+      case AppActiveRole.faculty:
+        return Icons.school_rounded;
+      case AppActiveRole.parent:
+        return Icons.family_restroom_rounded;
+      case AppActiveRole.superAdmin:
+      default:
+        return Icons.shield_rounded;
+    }
+  }
+
+  String get _activeLoginButtonText {
+    switch (_selectedRole) {
+      case AppActiveRole.principal:
+        return 'Login as Principal (${PrincipalMockData.principalName})';
+      case AppActiveRole.faculty:
+        return 'Login as Faculty (Ms. Kavya Sharma)';
+      case AppActiveRole.parent:
+        return 'Login as Parent (${ParentMockData.parentName})';
+      case AppActiveRole.superAdmin:
+      default:
+        return 'Login as Super Admin (Srinadh Kanupuru)';
+    }
+  }
+
+  String get _activeTipText {
+    switch (_selectedRole) {
+      case AppActiveRole.principal:
+        return '1-Click Access: Select "Principal" above and click Login to launch the Principal Portal instantly.';
+      case AppActiveRole.faculty:
+        return '1-Click Access: Select "Faculty" above and click Login to launch the Faculty Portal instantly.';
+      case AppActiveRole.parent:
+        return '1-Click Access: Select "Parent" above and click Login to launch the Parent Portal instantly.';
+      case AppActiveRole.superAdmin:
+      default:
+        return '1-Click Access: Select "Super Admin" above and click Login to launch the Universal Admin Portal instantly.';
+    }
   }
 
   @override
@@ -57,7 +134,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 1040),
+            constraints: const BoxConstraints(maxWidth: 1080),
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(24),
@@ -73,7 +150,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
             clipBehavior: Clip.antiAlias,
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 750;
+                final isWide = constraints.maxWidth > 800;
 
                 if (isWide) {
                   return IntrinsicHeight(
@@ -82,12 +159,12 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                       children: [
                         // Left Brand / Welcome Hero Banner
                         Expanded(
-                          flex: 48,
+                          flex: 44,
                           child: _buildLeftHero(),
                         ),
                         // Right Login Form
                         Expanded(
-                          flex: 52,
+                          flex: 56,
                           child: _buildLoginForm(),
                         ),
                       ],
@@ -111,7 +188,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
 
   Widget _buildLeftHero({bool isCompact = false}) {
     return Container(
-      padding: EdgeInsets.all(isCompact ? 28 : 44),
+      padding: EdgeInsets.all(isCompact ? 28 : 40),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -174,7 +251,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
           ),
 
           if (!isCompact) ...[
-            const SizedBox(height: 40),
+            const SizedBox(height: 36),
             // Hero Slogan
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +263,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Next-Gen Educational SaaS 2026',
+                    'Unified Educational SaaS Platform 2026',
                     style: GoogleFonts.inter(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
@@ -198,7 +275,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                 Text(
                   'Simpler Schools.\nBrighter Futures.',
                   style: GoogleFonts.inter(
-                    fontSize: 28,
+                    fontSize: 27,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                     height: 1.2,
@@ -207,26 +284,28 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Unified administrative intelligence for Super Admins, Campus Principals, Faculty, and Students.',
+                  'Unified administrative intelligence for Super Admins, Campus Principals, Faculty, and Parents.',
                   style: GoogleFonts.inter(
-                    fontSize: 13.5,
+                    fontSize: 13,
                     color: const Color(0xFFBFDBFE),
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
                 // Feature Highlights
                 _buildFeatureBullet(Icons.check_circle_rounded, 'Real-time Institutional & Biometric Attendance'),
                 const SizedBox(height: 10),
                 _buildFeatureBullet(Icons.check_circle_rounded, 'Academic Performance & Exam Roster Auditing'),
                 const SizedBox(height: 10),
+                _buildFeatureBullet(Icons.check_circle_rounded, 'Parent-Ward Sync, Homework & Fee Settlement'),
+                const SizedBox(height: 10),
                 _buildFeatureBullet(Icons.check_circle_rounded, 'Instant Leave Approvals & Sanction Workflows'),
                 const SizedBox(height: 10),
                 _buildFeatureBullet(Icons.check_circle_rounded, 'Fee Collection Analytics & Ledger Reconciliation'),
               ],
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 36),
           ],
 
           // Footer Quote
@@ -283,10 +362,8 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
   }
 
   Widget _buildLoginForm() {
-    final isPrincipalSelected = _selectedRole == AppActiveRole.principal;
-
     return Padding(
-      padding: const EdgeInsets.all(36),
+      padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -308,9 +385,9 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
               color: AppColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
-          // Role Selection Cards (Principal vs Super Admin)
+          // Role Selection Cards (Principal, Faculty, Parent, Super Admin)
           Text(
             'SELECT ROLE TO LOG IN',
             style: GoogleFonts.inter(
@@ -321,6 +398,8 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
             ),
           ),
           const SizedBox(height: 10),
+
+          // 4 Role Cards in Responsive Row
           Row(
             children: [
               // Principal Role Card
@@ -329,19 +408,45 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                   role: AppActiveRole.principal,
                   title: 'Principal',
                   subtitle: PrincipalMockData.principalName,
-                  badge: 'Campus Admin',
+                  badge: 'Admin',
                   icon: Icons.admin_panel_settings_rounded,
                   color: const Color(0xFF8B5CF6),
                   bg: const Color(0xFFF5F3FF),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 6),
+              // Faculty Role Card
+              Expanded(
+                child: _buildRoleCard(
+                  role: AppActiveRole.faculty,
+                  title: 'Faculty',
+                  subtitle: 'Ms. Kavya',
+                  badge: 'Teacher',
+                  icon: Icons.school_rounded,
+                  color: const Color(0xFF059669),
+                  bg: const Color(0xFFECFDF5),
+                ),
+              ),
+              const SizedBox(width: 6),
+              // Parent Role Card
+              Expanded(
+                child: _buildRoleCard(
+                  role: AppActiveRole.parent,
+                  title: 'Parent',
+                  subtitle: ParentMockData.parentName,
+                  badge: 'Guardian',
+                  icon: Icons.family_restroom_rounded,
+                  color: const Color(0xFFD97706),
+                  bg: const Color(0xFFFEF3C7),
+                ),
+              ),
+              const SizedBox(width: 6),
               // Super Admin Role Card
               Expanded(
                 child: _buildRoleCard(
                   role: AppActiveRole.superAdmin,
                   title: 'Super Admin',
-                  subtitle: 'Srinadh Kanupuru',
+                  subtitle: 'Srinadh K',
                   badge: 'Universal',
                   icon: Icons.shield_rounded,
                   color: AppColors.primary,
@@ -350,49 +455,15 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           // Email Input
           TextField(
             controller: _emailController,
             decoration: InputDecoration(
-              labelText: 'Official Email ID',
+              labelText: 'Official Email / User ID',
               prefixIcon: const Icon(Icons.mail_outline_rounded),
-              suffixIcon: isPrincipalSelected
-                  ? Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F3FF),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFDDD6FE)),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.star_rounded, size: 12, color: Color(0xFF8B5CF6)),
-                          SizedBox(width: 4),
-                          Text('Principal', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF8B5CF6))),
-                        ],
-                      ),
-                    )
-                  : Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryTint,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFBFDBFE)),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.shield_rounded, size: 12, color: AppColors.primary),
-                          SizedBox(width: 4),
-                          Text('Super Admin', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                        ],
-                      ),
-                    ),
+              suffixIcon: _buildRoleBadgeTag(),
             ),
           ),
           const SizedBox(height: 14),
@@ -426,7 +497,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                     height: 24,
                     child: Checkbox(
                       value: _rememberMe,
-                      activeColor: isPrincipalSelected ? const Color(0xFF8B5CF6) : AppColors.primary,
+                      activeColor: _activeThemeColor,
                       onChanged: (val) => setState(() => _rememberMe = val ?? true),
                     ),
                   ),
@@ -440,7 +511,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
               TextButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Password reset link sent to official email.')),
+                    const SnackBar(content: Text('Password reset link sent to registered email.')),
                   );
                 },
                 child: Text(
@@ -448,13 +519,13 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isPrincipalSelected ? const Color(0xFF8B5CF6) : AppColors.primary,
+                    color: _activeThemeColor,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
           // Login Button
           SizedBox(
@@ -462,9 +533,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
             height: 48,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isPrincipalSelected
-                    ? const Color(0xFF7C3AED)
-                    : AppColors.primary,
+                backgroundColor: _activeThemeColor,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -474,20 +543,17 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          isPrincipalSelected ? Icons.admin_panel_settings_rounded : Icons.shield_rounded,
-                          size: 18,
-                          color: Colors.white,
-                        ),
+                        Icon(_activeRoleIcon, size: 18, color: Colors.white),
                         const SizedBox(width: 8),
-                        Text(
-                          isPrincipalSelected
-                              ? 'Login as Principal (${PrincipalMockData.principalName})'
-                              : 'Login as Super Admin (Srinadh Kanupuru)',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            _activeLoginButtonText,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -496,7 +562,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                     ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Fast Switch Tip
           Container(
@@ -508,16 +574,102 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF8B5CF6)),
+                Icon(Icons.info_outline_rounded, size: 16, color: _activeThemeColor),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '1-Click Access: Select "Principal" above and click Login to launch the Principal Portal instantly.',
+                    _activeTipText,
                     style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 14),
+
+          // Alternative Portals
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Looking for dedicated Parent sign-in? ',
+                  style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                InkWell(
+                  onTap: () => Navigator.of(context).pushReplacementNamed('/parent/login'),
+                  child: Text(
+                    'Parent Login Page →',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: _activeThemeColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleBadgeTag() {
+    Color badgeColor;
+    Color badgeBg;
+    Color badgeBorder;
+    IconData badgeIcon;
+    String badgeText;
+
+    switch (_selectedRole) {
+      case AppActiveRole.principal:
+        badgeColor = const Color(0xFF8B5CF6);
+        badgeBg = const Color(0xFFF5F3FF);
+        badgeBorder = const Color(0xFFDDD6FE);
+        badgeIcon = Icons.admin_panel_settings_rounded;
+        badgeText = 'Principal';
+        break;
+      case AppActiveRole.faculty:
+        badgeColor = const Color(0xFF059669);
+        badgeBg = const Color(0xFFECFDF5);
+        badgeBorder = const Color(0xFFA7F3D0);
+        badgeIcon = Icons.school_rounded;
+        badgeText = 'Faculty';
+        break;
+      case AppActiveRole.parent:
+        badgeColor = const Color(0xFFD97706);
+        badgeBg = const Color(0xFFFEF3C7);
+        badgeBorder = const Color(0xFFFDE68A);
+        badgeIcon = Icons.family_restroom_rounded;
+        badgeText = 'Parent';
+        break;
+      case AppActiveRole.superAdmin:
+      default:
+        badgeColor = AppColors.primary;
+        badgeBg = AppColors.primaryTint;
+        badgeBorder = const Color(0xFFBFDBFE);
+        badgeIcon = Icons.shield_rounded;
+        badgeText = 'Super Admin';
+        break;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: badgeBg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: badgeBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(badgeIcon, size: 12, color: badgeColor),
+          const SizedBox(width: 4),
+          Text(
+            badgeText,
+            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: badgeColor),
           ),
         ],
       ),
@@ -541,7 +693,7 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
         onTap: () => _onRoleChanged(role),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? bg : AppColors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -566,23 +718,23 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
+                      color: isSelected ? color.withValues(alpha: 0.15) : AppColors.surfaceMuted,
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Icon(icon, size: 16, color: color),
+                    child: Icon(icon, size: 14, color: color),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
                     decoration: BoxDecoration(
                       color: isSelected ? color : AppColors.surfaceMuted,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       badge,
                       style: GoogleFonts.inter(
-                        fontSize: 9.5,
+                        fontSize: 8,
                         fontWeight: FontWeight.w700,
                         color: isSelected ? Colors.white : AppColors.textMuted,
                       ),
@@ -590,22 +742,24 @@ class _SaasLoginScreenState extends State<SaasLoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 title,
                 style: GoogleFonts.inter(
-                  fontSize: 13.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: isSelected ? color : AppColors.textPrimary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
                 subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: AppColors.textSecondary,
                 ),
               ),
