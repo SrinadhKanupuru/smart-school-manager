@@ -71,6 +71,22 @@ async function main() {
         }
       });
     }
+    if (s.role === "TEACHER") {
+      const existingProfile = await prisma.teacherProfile.findUnique({ where: { userId: u.id } });
+      if (!existingProfile) {
+        await prisma.teacherProfile.create({
+          data: {
+            userId: u.id,
+            qualification: "M.Sc., B.Ed",
+            experienceYears: 5,
+            salaryAmount: 45000,
+            workingStatus: "ACTIVE",
+            bloodGroup: "O+",
+            permanentAddress: "Sector 4, New Delhi"
+          }
+        });
+      }
+    }
     staffUsers.push({ ...u, department: s.department });
   }
 

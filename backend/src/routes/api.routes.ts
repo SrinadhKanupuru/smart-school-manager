@@ -3,7 +3,7 @@ import multer from "multer";
 import { authenticateToken, requireRoles } from "../middlewares/auth";
 import { registerSchool, login, getCurrentUser } from "../controllers/auth.controller";
 import { registerStaffController, verifyAttendanceController, getStaffAttendanceHistoryController } from "../controllers/face.controller";
-import { addUser, getSchools, getUsersByRole, addParentAndAssignStudents, updateSchool, deleteSchool, createSchool } from "../controllers/school.controller";
+import { addUser, getSchools, getUsersByRole, addParentAndAssignStudents, updateSchool, deleteSchool, createSchool, quickAddTeacher, getTeachersList } from "../controllers/school.controller";
 import {
   getClassesAndSections,
   markAttendance,
@@ -118,6 +118,10 @@ router.get("/school/schools", getSchools);
 router.post("/school/schools", authenticateToken, requireRoles(["CORRESPONDENT"]), createSchool);
 router.put("/school/schools/:schoolId", authenticateToken, requireRoles(["CORRESPONDENT"]), updateSchool);
 router.delete("/school/schools/:schoolId", authenticateToken, requireRoles(["CORRESPONDENT"]), deleteSchool);
+router.post("/school/quick-teacher", quickAddTeacher);
+router.get("/school/teachers", getTeachersList);
+router.post("/teachers", quickAddTeacher);
+router.get("/teachers", getTeachersList);
 router.get("/school/users-by-role", authenticateToken, getUsersByRole);
 
 // Salary Component & Template Management

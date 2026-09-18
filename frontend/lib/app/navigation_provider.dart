@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../models/teacher_model.dart';
 import '../models/student_model.dart';
 import '../data/mock_data.dart';
+import '../core/api_client.dart';
 
 enum AppModule {
   dashboard,
@@ -92,5 +94,19 @@ class NavigationProvider with ChangeNotifier {
   void addTeacher(TeacherModel teacher) {
     MockData.teachers.insert(0, teacher);
     notifyListeners();
+    // Persist to PostgreSQL database asynchronously
+    ApiClient.instance.post('/school/quick-teacher', {
+      'fullName': teacher.name,
+      'email': teacher.email,
+      'phoneNumber': teacher.phone,
+      'subject': teacher.subject,
+      'handledClass': teacher.handledClass,
+      'qualification': teacher.qualification,
+      'experienceYears': 5,
+      'salaryAmount': 45000,
+    }).catchError((e) {
+      debugPrint('Sync teacher error: $e');
+      return http.Response('{"error": "$e"}', 500);
+    });
   }
 }

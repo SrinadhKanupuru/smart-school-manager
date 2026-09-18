@@ -92,6 +92,114 @@ export async function addUser(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+export async function quickAddTeacher(req: any, res: Response) {
+  try {
+    const { fullName, email, phoneNumber, subject, handledClass, qualification, experienceYears, salaryAmount } = req.body;
+
+    if (!fullName) {
+      return res.status(400).json({ error: "Teacher full name is required" });
+    }
+
+    let school = await prisma.school.findFirst();
+    if (!school) {
+      school = await prisma.school.create({
+        data: {
+          name: "Smart Public School",
+          code: "SPS-2026",
+          type: "K12",
+          board: "CBSE",
+          address: "Main Campus, Education Hub",
+          city: "New Delhi",
+          state: "Delhi",
+          country: "India",
+          pinCode: "110001",
+          contactNumber: "+91 98765 00000"
+        }
+      });
+    }
+
+    const teacherEmail = email && email.trim().length > 0 
+      ? email.trim() 
+      : `${fullName.toLowerCase().replace(/[^a-z0-9]/g, ".")}.${Date.now().toString().slice(-4)}@smartschool.edu`;
+
+    const existingUser = await prisma.user.findUnique({ where: { email: teacherEmail } });
+    if (existingUser) {
+      return res.status(400).json({ error: "A user with this email already exists" });
+    }
+
+    const passwordHash = await bcrypt.hash("teacher123", 10);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          fullName: fullName.trim(),
+          email: teacherEmail,
+          phoneNumber: phoneNumber || "+91 98765 00000",
+          passwordHash,
+          role: "TEACHER",
+          schoolId: school.id
+        }
+      });
+
+      const profile = await tx.teacherProfile.create({
+        data: {
+          userId: newUser.id,
+          qualification: qualification || "M.Sc., B.Ed",
+          experienceYears: experienceYears ? parseInt(experienceYears.toString()) : 3,
+          salaryAmount: salaryAmount ? parseFloat(salaryAmount.toString()) : 45000,
+          workingStatus: "ACTIVE",
+          permanentAddress: handledClass ? `Class Incharge: ${handledClass}` : undefined
+        }
+      });
+
+      return { user: newUser, profile };
+    });
+
+    res.status(201).json({
+      message: "Teacher added successfully to database",
+      teacher: {
+        id: result.user.id,
+        fullName: result.user.fullName,
+        email: result.user.email,
+        phoneNumber: result.user.phoneNumber,
+        role: result.user.role,
+        schoolId: result.user.schoolId,
+        profileId: result.profile.id,
+        qualification: result.profile.qualification,
+        salaryAmount: result.profile.salaryAmount
+      }
+    });
+  } catch (error: any) {
+    console.error("quickAddTeacher error:", error);
+    res.status(500).json({ error: error.message || "Failed to add teacher" });
+  }
+}
+
+export async function getTeachersList(req: any, res: Response) {
+  try {
+    const teachers = await prisma.teacherProfile.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phoneNumber: true,
+            role: true,
+            schoolId: true,
+            createdAt: true
+          }
+        }
+      },
+      orderBy: { id: "desc" }
+    });
+
+    res.json({ count: teachers.length, teachers });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to fetch teachers" });
+  }
+}
+
 export async function getSchools(req: AuthenticatedRequest, res: Response) {
   try {
     const schools = await prisma.school.findMany({
