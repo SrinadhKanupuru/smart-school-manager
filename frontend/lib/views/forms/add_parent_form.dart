@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/academic_provider.dart';
@@ -164,14 +165,21 @@ class _AddParentFormState extends State<AddParentForm> {
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: _phoneCtrl,
-                  keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
                   decoration: const InputDecoration(
-                    labelText: 'Mobile Number*',
+                    labelText: 'Mobile Number* (10 digits)',
                     hintText: 'Enter 10-digit phone number',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Enter mobile number' : null,
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return 'Enter mobile number';
+                    if (val.length != 10) return 'Phone number must be exactly 10 digits';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
@@ -188,9 +189,17 @@ class _AddPrincipalHmFormState extends State<AddPrincipalHmForm> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _phoneCtrl,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Mobile Number*', hintText: 'Enter contact phone'),
-                  validator: (val) => val == null || val.isEmpty ? 'Enter mobile number' : null,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  decoration: const InputDecoration(labelText: 'Mobile Number* (10 digits)', hintText: 'Enter 10-digit mobile'),
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return 'Enter mobile number';
+                    if (val.length != 10) return 'Mobile number must be exactly 10 digits';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -291,10 +300,14 @@ class _AddPrincipalHmFormState extends State<AddPrincipalHmForm> {
                     Expanded(
                       child: TextFormField(
                         controller: _emergencyContactPhoneCtrl,
-                        keyboardType: TextInputType.phone,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
                         decoration: const InputDecoration(
-                          labelText: 'Emergency Contact Phone',
-                          hintText: 'Phone number',
+                          labelText: 'Emergency Contact Phone (10 digits)',
+                          hintText: '10-digit number',
                         ),
                       ),
                     ),

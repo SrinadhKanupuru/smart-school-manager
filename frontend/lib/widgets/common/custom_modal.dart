@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -77,7 +78,15 @@ class CustomModals {
                 const SizedBox(height: 12),
                 TextField(
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: 'Parent Phone Number', hintText: '+91 98765 00000'),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Parent Phone Number (10 digits)',
+                    hintText: '9876543210',
+                  ),
                 ),
               ],
             ),
@@ -189,7 +198,15 @@ class CustomModals {
                 const SizedBox(height: 12),
                 TextField(
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: 'Phone Number', hintText: '+91 98765 11111'),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number (10 digits)',
+                    hintText: '9876543210',
+                  ),
                 ),
               ],
             ),
