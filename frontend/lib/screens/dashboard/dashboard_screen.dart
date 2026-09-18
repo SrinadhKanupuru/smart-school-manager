@@ -19,8 +19,8 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nav = Provider.of<NavigationProvider>(context, listen: false);
-    final kpis = MockData.getDashboardKpis();
+    final nav = Provider.of<NavigationProvider>(context);
+    final kpis = MockData.getDashboardKpis(nav.dashboardStats);
     final String currentDate = DateFormat('EEEE, d MMMM yyyy').format(DateTime.now());
 
     return SingleChildScrollView(

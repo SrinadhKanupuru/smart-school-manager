@@ -244,6 +244,148 @@ async function main() {
     }
   }
 
+  // Ensure Classes & Sections
+  const classNames = ["Grade 9", "Grade 10", "Grade 11", "Grade 12"];
+  const classesList = [];
+  for (const cName of classNames) {
+    let cls = await prisma.class.findFirst({ where: { schoolId: school.id, name: cName } });
+    if (!cls) {
+      cls = await prisma.class.create({ data: { schoolId: school.id, name: cName } });
+    }
+    classesList.push(cls);
+
+    for (const secName of ["A", "B"]) {
+      let sec = await prisma.classSection.findFirst({ where: { classId: cls.id, name: secName } });
+      if (!sec) {
+        sec = await prisma.classSection.create({
+          data: {
+            classId: cls.id,
+            name: secName,
+          }
+        });
+      }
+    }
+  }
+
+  // Get Section 10-A
+  const class10 = classesList.find(c => c.name === "Grade 10") || classesList[0];
+  const sec10A = await prisma.classSection.findFirst({ where: { classId: class10.id, name: "A" } });
+
+  // Ensure Students
+  const sampleStudents = [
+    { fullName: "Aarav Sharma", rollNo: "01", gender: "Male", dob: new Date("2011-04-12"), feeStatus: "Paid", feeAmt: 25000, feePaid: 25000 },
+    { fullName: "Diya Patel", rollNo: "02", gender: "Female", dob: new Date("2011-08-23"), feeStatus: "Paid", feeAmt: 25000, feePaid: 25000 },
+    { fullName: "Rohan Verma", rollNo: "03", gender: "Male", dob: new Date("2011-01-15"), feeStatus: "Pending", feeAmt: 25000, feePaid: 10000 },
+    { fullName: "Ananya Iyer", rollNo: "04", gender: "Female", dob: new Date("2011-11-30"), feeStatus: "Paid", feeAmt: 25000, feePaid: 25000 },
+    { fullName: "Ishan Malhotra", rollNo: "05", gender: "Male", dob: new Date("2011-06-05"), feeStatus: "Overdue", feeAmt: 25000, feePaid: 0 },
+    { fullName: "Sneha Reddy", rollNo: "06", gender: "Female", dob: new Date("2011-09-18"), feeStatus: "Paid", feeAmt: 25000, feePaid: 25000 },
+    { fullName: "Aditya Roy", rollNo: "07", gender: "Male", dob: new Date("2011-03-22"), feeStatus: "Pending", feeAmt: 25000, feePaid: 15000 },
+    { fullName: "Meera Kapoor", rollNo: "08", gender: "Female", dob: new Date("2011-12-08"), feeStatus: "Paid", feeAmt: 25000, feePaid: 25000 },
+  ];
+
+  const studentRecords = [];
+  for (const s of sampleStudents) {
+    let stu = await prisma.student.findFirst({ where: { schoolId: school.id, rollNo: s.rollNo } });
+    if (!stu) {
+      stu = await prisma.student.create({
+        data: {
+          schoolId: school.id,
+          fullName: s.fullName,
+          rollNo: s.rollNo,
+          classSectionId: sec10A?.id,
+          gender: s.gender,
+          dateOfBirth: s.dob,
+          isActive: true
+        }
+      });
+
+      // Add Fee Record
+      await prisma.feeRecord.create({
+        data: {
+          studentId: stu.id,
+          category: "Tuition Fee (Q2)",
+          amount: s.feeAmt,
+          paidAmount: s.feePaid,
+          status: s.feeStatus.toUpperCase(),
+          dueDate: new Date("2026-09-30T00:00:00.000Z")
+        }
+      });
+    }
+    studentRecords.push(stu);
+  }
+
+  // Ensure Parent Accounts
+  const parentUsers = [
+    { fullName: "Ramesh Sharma", email: "ramesh.sharma@parent.com", phone: "+91 98765 88801", studentRollNo: "01" },
+    { fullName: "Priya Patel", email: "priya.patel@parent.com", phone: "+91 98765 88802", studentRollNo: "02" },
+    { fullName: "Sunita Verma", email: "sunita.verma@parent.com", phone: "+91 98765 88803", studentRollNo: "03" },
+  ];
+
+  for (const p of parentUsers) {
+    let pUser = await prisma.user.findUnique({ where: { email: p.email } });
+    if (!pUser) {
+      const pHash = await bcrypt.hash("parent123", 10);
+      pUser = await prisma.user.create({
+        data: {
+          fullName: p.fullName,
+          email: p.email,
+          phoneNumber: p.phone,
+          passwordHash: pHash,
+          role: "PARENT",
+          schoolId: school.id
+        }
+      });
+
+      const pProfile = await prisma.parentProfile.create({
+        data: {
+          userId: pUser.id,
+          relation: "FATHER"
+        }
+      });
+
+      const matchedStu = studentRecords.find(st => st.rollNo === p.studentRollNo);
+      if (matchedStu) {
+        await prisma.parentToStudent.create({
+          data: {
+            parentId: pProfile.id,
+            studentId: matchedStu.id
+          }
+        });
+      }
+    }
+  }
+
+  // Ensure Homework in Grade 10-A
+  if (sec10A && staffUsers.length > 0) {
+    const homeworkSamples = [
+      {
+        classSectionId: sec10A.id,
+        subject: "Mathematics",
+        title: "Quadratic Equations Problem Set 4",
+        description: "Solve questions 1 through 15 from Chapter 4 exercise 4.2. Submit handwritten solutions.",
+        dueDate: new Date("2026-09-22T18:00:00.000Z"),
+        createdById: staffUsers[0].id
+      },
+      {
+        classSectionId: sec10A.id,
+        subject: "Physics",
+        title: "Electromagnetism Numerical Sheet",
+        description: "Calculate magnetic force and flux for given wire loops in worksheet PDF.",
+        dueDate: new Date("2026-09-24T18:00:00.000Z"),
+        createdById: staffUsers[1].id
+      }
+    ];
+
+    for (const hw of homeworkSamples) {
+      const existingHw = await prisma.homework.findFirst({
+        where: { classSectionId: hw.classSectionId, title: hw.title }
+      });
+      if (!existingHw) {
+        await prisma.homework.create({ data: hw });
+      }
+    }
+  }
+
   console.log("Database initialization & seeding complete!");
   process.exit(0);
 }

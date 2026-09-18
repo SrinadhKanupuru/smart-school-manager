@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../app/navigation_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_decorations.dart';
 import '../../data/mock_data.dart';
@@ -21,11 +23,12 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final transactions = MockData.feeTransactions.where((t) {
+    final nav = Provider.of<NavigationProvider>(context);
+    final transactions = nav.fees.where((t) {
       final matchesSearch = t.studentName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           t.receiptNo.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           t.studentClass.toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesStatus = _feeStatusFilter == 'All' || t.status == _feeStatusFilter;
+      final matchesStatus = _feeStatusFilter == 'All' || t.status.toLowerCase() == _feeStatusFilter.toLowerCase();
       return matchesSearch && matchesStatus;
     }).toList();
 

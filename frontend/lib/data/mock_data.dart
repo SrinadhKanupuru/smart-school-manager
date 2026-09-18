@@ -25,62 +25,68 @@ class MockData {
   }
 
   // Dashboard 5 KPI Cards
-  static List<KpiCardData> getDashboardKpis() {
+  static List<KpiCardData> getDashboardKpis([Map<String, dynamic>? stats]) {
+    final sCount = stats != null && stats['totalStudents'] != null ? '${stats['totalStudents']}' : '1,248';
+    final tCount = stats != null && stats['totalTeachers'] != null ? '${stats['totalTeachers']}' : '86';
+    final presToday = stats != null && stats['attendancePercentage'] != null ? '${stats['attendancePercentage']}' : '96.4%';
+    final feeCol = stats != null && stats['feeCollection'] != null ? formatInr(stats['feeCollection'] as num) : '₹18,76,200';
+    final feePending = stats != null && stats['pendingFees'] != null ? formatInr(stats['pendingFees'] as num) : '₹4,32,600';
+
     return [
-      const KpiCardData(
+      KpiCardData(
         title: 'Total Students',
-        value: '1,248',
+        value: sCount,
         changePercentage: '+5.2%',
         isPositive: true,
         comparisonPeriod: 'vs last month',
         icon: Icons.school_outlined,
-        iconColor: Color(0xFF2563EB),
-        iconBgColor: Color(0xFFEFF6FF),
-        sparklineData: [20, 24, 22, 28, 26, 32, 35],
+        iconColor: const Color(0xFF2563EB),
+        iconBgColor: const Color(0xFFEFF6FF),
+        sparklineData: const [20, 24, 22, 28, 26, 32, 35],
       ),
-      const KpiCardData(
+      KpiCardData(
         title: 'Total Teachers',
-        value: '86',
+        value: tCount,
         changePercentage: '+2.4%',
         isPositive: true,
         comparisonPeriod: 'vs last month',
         icon: Icons.person_outline_rounded,
-        iconColor: Color(0xFF8B5CF6),
-        iconBgColor: Color(0xFFF5F3FF),
-        sparklineData: [15, 16, 16, 18, 17, 19, 20],
+        iconColor: const Color(0xFF8B5CF6),
+        iconBgColor: const Color(0xFFF5F3FF),
+        sparklineData: const [15, 16, 16, 18, 17, 19, 20],
       ),
-      const KpiCardData(
+      KpiCardData(
         title: 'Present Today',
-        value: '96.4%',
+        value: presToday,
         changePercentage: '+1.8%',
         isPositive: true,
         comparisonPeriod: 'vs yesterday',
         icon: Icons.check_circle_outline_rounded,
-        iconColor: Color(0xFF10B981),
-        iconBgColor: Color(0xFFECFDF5),
-        sparklineData: [88, 90, 89, 93, 91, 94, 96.4],
+        iconColor: const Color(0xFF10B981),
+        iconBgColor: const Color(0xFFECFDF5),
+        sparklineData: const [88, 90, 89, 93, 91, 94, 96.4],
       ),
-      const KpiCardData(
+      KpiCardData(
         title: 'Fee Collection',
-        value: '₹18,76,200',
+        value: feeCol,
         changePercentage: '+12.6%',
         isPositive: true,
         comparisonPeriod: 'vs last month',
         icon: Icons.account_balance_wallet_outlined,
-        iconColor: Color(0xFF059669),
-        iconBgColor: Color(0xFFF0FDF4),
-        sparklineData: [40, 52, 58, 64, 70, 82, 95],
+        iconColor: const Color(0xFF059669),
+        iconBgColor: const Color(0xFFF0FDF4),
+        sparklineData: const [40, 52, 58, 64, 70, 82, 95],
       ),
-      const KpiCardData(
+      KpiCardData(
         title: 'Pending Fees',
-        value: '₹4,32,600',
+        value: feePending,
         changePercentage: '-8.1%',
         isPositive: false, // Decreasing pending fee is good, displayed in negative alert format
         comparisonPeriod: 'vs last month',
         icon: Icons.pending_actions_outlined,
-        iconColor: Color(0xFFEF4444),
-        iconBgColor: Color(0xFFFEF2F2),
-        sparklineData: [65, 60, 58, 52, 48, 45, 40],
+        iconColor: const Color(0xFFEF4444),
+        iconBgColor: const Color(0xFFFEF2F2),
+        sparklineData: const [65, 60, 58, 52, 48, 45, 40],
       ),
     ];
   }

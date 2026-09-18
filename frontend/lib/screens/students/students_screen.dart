@@ -35,7 +35,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
       });
     }
 
-    final students = MockData.students.where((s) {
+    final students = nav.students.where((s) {
       final matchesSearch = s.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           s.studentId.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           s.parentName.toLowerCase().contains(_searchQuery.toLowerCase()) ||

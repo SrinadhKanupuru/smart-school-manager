@@ -27,7 +27,7 @@ class _TeachersScreenState extends State<TeachersScreen> {
     final nav = Provider.of<NavigationProvider>(context);
 
     // Filter teachers list
-    final teachers = MockData.teachers.where((t) {
+    final teachers = nav.teachers.where((t) {
       final matchesSearch = t.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           t.employeeId.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           t.subject.toLowerCase().contains(_searchQuery.toLowerCase()) ||

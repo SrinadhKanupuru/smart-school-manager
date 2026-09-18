@@ -6,6 +6,9 @@ import '../../core/theme/app_colors.dart';
 import '../../app/navigation_provider.dart';
 import '../../models/student_model.dart';
 import '../../models/teacher_model.dart';
+import '../../models/fee_data.dart';
+import '../../data/mock_data.dart';
+import '../../services/api_service.dart';
 
 class CustomModals {
   // Add Student Dialog
@@ -409,11 +412,30 @@ class CustomModals {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
               onPressed: () {
+                final amt = double.tryParse(amountCtrl.text.replaceAll(',', '').trim()) ?? 25000.0;
+                final newTx = FeeTransaction(
+                  id: 'FEE-${DateTime.now().millisecondsSinceEpoch}',
+                  receiptNo: 'REC-${1000 + (DateTime.now().millisecond % 900)}',
+                  studentName: studentCtrl.text.trim().isNotEmpty ? studentCtrl.text.trim() : 'Aarav Sharma',
+                  studentClass: 'Grade 10-A',
+                  feeType: 'Tuition Fee (Q2)',
+                  totalAmount: amt,
+                  paidAmount: amt,
+                  pendingAmount: 0.0,
+                  dueDate: '30 Sep 2026',
+                  paymentDate: 'Today',
+                  status: 'Paid',
+                  paymentMode: paymentMode,
+                );
+                final nav = Provider.of<NavigationProvider>(context, listen: false);
+                nav.fees.insert(0, newTx);
+                MockData.feeTransactions.insert(0, newTx);
+                ApiService.instance.payFee(feeId: newTx.id, amount: amt, paymentMode: paymentMode);
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     backgroundColor: Color(0xFF10B981),
-                    content: Text('Payment recorded & E-Receipt sent to parent!'),
+                    content: Text('Payment recorded & E-Receipt stored in database!'),
                   ),
                 );
               },

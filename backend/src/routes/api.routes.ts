@@ -3,7 +3,7 @@ import multer from "multer";
 import { authenticateToken, requireRoles } from "../middlewares/auth";
 import { registerSchool, login, getCurrentUser } from "../controllers/auth.controller";
 import { registerStaffController, verifyAttendanceController, getStaffAttendanceHistoryController } from "../controllers/face.controller";
-import { addUser, getSchools, getUsersByRole, addParentAndAssignStudents, updateSchool, deleteSchool, createSchool, quickAddTeacher, getTeachersList } from "../controllers/school.controller";
+import { addUser, getSchools, getUsersByRole, addParentAndAssignStudents, updateSchool, deleteSchool, createSchool, quickAddTeacher, getTeachersList, getPrincipalsList, quickAddPrincipal, getParentsList } from "../controllers/school.controller";
 import {
   getClassesAndSections,
   markAttendance,
@@ -20,6 +20,8 @@ import {
   deleteTimetableSlot,
   addStudent,
   getStudents,
+  directAddStudent,
+  deleteStudent,
   uploadResource,
   getResources,
   fileUploadMiddleware,
@@ -29,6 +31,8 @@ import {
   assignStudentsToClassSection,
   assignClassTeacher
 } from "../controllers/academic.controller";
+import { getAdminDashboardStats, getPrincipalDashboardStats } from "../controllers/dashboard.controller";
+import { getFeeRecords, payFee } from "../controllers/fee.controller";
 import {
   applyLeave,
   getLeaves,
@@ -119,9 +123,24 @@ router.post("/school/schools", authenticateToken, requireRoles(["CORRESPONDENT"]
 router.put("/school/schools/:schoolId", authenticateToken, requireRoles(["CORRESPONDENT"]), updateSchool);
 router.delete("/school/schools/:schoolId", authenticateToken, requireRoles(["CORRESPONDENT"]), deleteSchool);
 router.post("/school/quick-teacher", quickAddTeacher);
+router.post("/school/teachers/quick-add", quickAddTeacher);
+router.post("/school/teachers", quickAddTeacher);
 router.get("/school/teachers", getTeachersList);
 router.post("/teachers", quickAddTeacher);
 router.get("/teachers", getTeachersList);
+router.get("/school/principals", getPrincipalsList);
+router.post("/school/quick-principal", quickAddPrincipal);
+router.post("/school/principals", quickAddPrincipal);
+router.get("/principals", getPrincipalsList);
+router.post("/principals", quickAddPrincipal);
+router.get("/school/parents-list", getParentsList);
+router.get("/parents", getParentsList);
+router.get("/dashboard/admin", getAdminDashboardStats);
+router.get("/dashboard/principal", getPrincipalDashboardStats);
+router.get("/account/fees", getFeeRecords);
+router.post("/account/pay-fee", payFee);
+router.get("/fees", getFeeRecords);
+router.post("/fees/pay", payFee);
 router.get("/school/users-by-role", authenticateToken, getUsersByRole);
 
 // Salary Component & Template Management
@@ -143,15 +162,20 @@ router.get("/school/holidays", authenticateToken, getHolidays);
 router.delete("/school/holidays/:id", authenticateToken, requireRoles(["CORRESPONDENT", "PRINCIPAL", "HM"]), deleteHoliday);
 
 // Academic management
-router.get("/academic/classes", authenticateToken, getClassesAndSections);
+router.get("/academic/classes", getClassesAndSections);
 router.post("/academic/classes", authenticateToken, requireRoles(["CORRESPONDENT", "PRINCIPAL", "HM"]), createClass);
 router.post("/academic/classes/sections", authenticateToken, requireRoles(["CORRESPONDENT", "PRINCIPAL", "HM"]), createClassSection);
 router.put("/academic/classes/sections/:sectionId/class-teacher", authenticateToken, requireRoles(["CORRESPONDENT", "PRINCIPAL", "HM"]), assignClassTeacher);
 router.post("/academic/students/assign-class", authenticateToken, requireRoles(["CORRESPONDENT", "PRINCIPAL", "HM"]), assignStudentsToClassSection);
-router.post("/academic/students", authenticateToken, requireRoles(["CORRESPONDENT", "PRINCIPAL", "HM"]), addStudent);
-router.get("/academic/students", authenticateToken, requireRoles(["CORRESPONDENT", "PRINCIPAL", "HM", "TEACHER"]), getStudents);
-router.post("/academic/attendance", authenticateToken, markAttendance);
-router.get("/academic/attendance-history", authenticateToken, getAttendanceHistory);
+router.post("/academic/students", directAddStudent);
+router.get("/academic/students", getStudents);
+router.post("/academic/direct-add-student", directAddStudent);
+router.delete("/academic/students/:id", deleteStudent);
+router.get("/students", getStudents);
+router.post("/students", directAddStudent);
+router.delete("/students/:id", deleteStudent);
+router.post("/academic/attendance", markAttendance);
+router.get("/academic/attendance-history", getAttendanceHistory);
 router.post("/academic/homework", authenticateToken, uploadHomework);
 router.get("/academic/homework-list", authenticateToken, getHomework);
 router.post("/academic/diary", authenticateToken, addDiary);

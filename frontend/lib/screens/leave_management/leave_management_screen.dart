@@ -37,15 +37,15 @@ class _LeaveManagementScreenState extends State<LeaveManagementScreen> with Sing
 
     // Filter by role (Teacher vs Student) and status (Pending, Approved, Rejected)
     final targetRole = _tabController.index == 0 ? 'Teacher' : 'Student';
-    final leaves = MockData.leaves.where((l) {
-      final matchesRole = l.role == targetRole;
-      final matchesStatus = _statusFilter == 'All Status' || l.status == _statusFilter;
+    final leaves = nav.leaves.where((l) {
+      final matchesRole = l.role.toLowerCase().contains(targetRole.toLowerCase()) || (targetRole == 'Teacher' && l.role == 'Faculty');
+      final matchesStatus = _statusFilter == 'All Status' || l.status.toLowerCase() == _statusFilter.toLowerCase();
       return matchesRole && matchesStatus;
     }).toList();
 
-    final pendingCount = MockData.leaves.where((l) => l.role == targetRole && l.status == 'Pending').length;
-    final approvedCount = MockData.leaves.where((l) => l.role == targetRole && l.status == 'Approved').length;
-    final rejectedCount = MockData.leaves.where((l) => l.role == targetRole && l.status == 'Rejected').length;
+    final pendingCount = nav.leaves.where((l) => (l.role.toLowerCase().contains(targetRole.toLowerCase()) || (targetRole == 'Teacher' && l.role == 'Faculty')) && l.status.toLowerCase() == 'pending').length;
+    final approvedCount = nav.leaves.where((l) => (l.role.toLowerCase().contains(targetRole.toLowerCase()) || (targetRole == 'Teacher' && l.role == 'Faculty')) && l.status.toLowerCase() == 'approved').length;
+    final rejectedCount = nav.leaves.where((l) => (l.role.toLowerCase().contains(targetRole.toLowerCase()) || (targetRole == 'Teacher' && l.role == 'Faculty')) && l.status.toLowerCase() == 'rejected').length;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),

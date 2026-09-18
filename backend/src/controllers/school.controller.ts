@@ -200,6 +200,97 @@ export async function getTeachersList(req: any, res: Response) {
   }
 }
 
+export async function getPrincipalsList(req: any, res: Response) {
+  try {
+    const principals = await prisma.user.findMany({
+      where: {
+        role: { in: ["PRINCIPAL", "HM", "CORRESPONDENT"] }
+      },
+      include: {
+        school: true
+      },
+      orderBy: { createdAt: "desc" }
+    });
+    res.json({ count: principals.length, principals });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to fetch principals" });
+  }
+}
+
+export async function quickAddPrincipal(req: any, res: Response) {
+  try {
+    const { fullName, email, phoneNumber, qualification, branch } = req.body;
+    if (!fullName) {
+      return res.status(400).json({ error: "Full name is required" });
+    }
+
+    let school = await prisma.school.findFirst();
+    if (!school) {
+      school = await prisma.school.create({
+        data: {
+          name: branch || "Delhi Public International School",
+          code: "DPIS-2026",
+          type: "K12",
+          board: "CBSE",
+          address: "Plot 14, Institutional Area, Sector 5",
+          city: "New Delhi",
+          state: "Delhi",
+          country: "India",
+          pinCode: "110001",
+          contactNumber: "+91 98765 43210"
+        }
+      });
+    }
+
+    const principalEmail = email && email.trim().length > 0
+      ? email.trim()
+      : `principal.${Date.now().toString().slice(-4)}@smartschool.edu`;
+
+    const passwordHash = await bcrypt.hash("principal123", 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        fullName: fullName.trim(),
+        email: principalEmail,
+        phoneNumber: phoneNumber || "+91 98765 43210",
+        passwordHash,
+        role: "PRINCIPAL",
+        schoolId: school.id
+      },
+      include: { school: true }
+    });
+
+    res.status(201).json({ message: "Principal created successfully", principal: newUser });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to add principal" });
+  }
+}
+
+export async function getParentsList(req: any, res: Response) {
+  try {
+    const parents = await prisma.parentProfile.findMany({
+      include: {
+        user: true,
+        students: {
+          include: {
+            student: {
+              include: {
+                classSection: {
+                  include: { class: true }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { id: "desc" }
+    });
+    res.json({ count: parents.length, parents });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to fetch parents" });
+  }
+}
+
 export async function getSchools(req: AuthenticatedRequest, res: Response) {
   try {
     const schools = await prisma.school.findMany({

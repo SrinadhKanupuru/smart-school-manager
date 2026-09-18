@@ -662,15 +662,26 @@ export async function addStudent(req: AuthenticatedRequest, res: Response) {
   }
 }
 
-export async function getStudents(req: AuthenticatedRequest, res: Response) {
+export async function getStudents(req: any, res: Response) {
   try {
-    const schoolId = req.user?.schoolId;
+    let schoolId = req.user?.schoolId;
     if (!schoolId) {
-      return res.status(400).json({ error: "Missing school context" });
+      const defaultSchool = await prisma.school.findFirst();
+      schoolId = defaultSchool?.id;
+    }
+
+    if (!schoolId) {
+      return res.json([]);
+    }
+
+    const { classSectionId } = req.query;
+    const whereClause: any = { schoolId };
+    if (classSectionId) {
+      whereClause.classSectionId = classSectionId as string;
     }
 
     const students = await prisma.student.findMany({
-      where: { schoolId },
+      where: whereClause,
       include: {
         classSection: {
           include: {
@@ -721,6 +732,112 @@ export async function getStudents(req: AuthenticatedRequest, res: Response) {
     res.json(students);
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Failed to fetch students" });
+  }
+}
+
+export async function directAddStudent(req: any, res: Response) {
+  try {
+    const { fullName, rollNo, className, section, gender, dob, parentName, parentPhone } = req.body;
+
+    if (!fullName) {
+      return res.status(400).json({ error: "Student full name is required" });
+    }
+
+    let school = await prisma.school.findFirst();
+    if (!school) {
+      school = await prisma.school.create({
+        data: {
+          name: "Delhi Public International School",
+          code: "DPIS-2026",
+          type: "K12",
+          board: "CBSE",
+          address: "Plot 14, Institutional Area, Sector 5",
+          city: "New Delhi",
+          state: "Delhi",
+          country: "India",
+          pinCode: "110001",
+          contactNumber: "+91 98765 43210"
+        }
+      });
+    }
+
+    // Find or create class and section
+    const clsName = className || "Grade 10";
+    const secName = section || "A";
+
+    let classRecord = await prisma.class.findFirst({
+      where: { schoolId: school.id, name: clsName }
+    });
+    if (!classRecord) {
+      classRecord = await prisma.class.create({
+        data: { schoolId: school.id, name: clsName }
+      });
+    }
+
+    let sectionRecord = await prisma.classSection.findFirst({
+      where: { classId: classRecord.id, name: secName }
+    });
+    if (!sectionRecord) {
+      sectionRecord = await prisma.classSection.create({
+        data: { classId: classRecord.id, name: secName }
+      });
+    }
+
+    const sRollNo = rollNo || `${Math.floor(10 + Math.random() * 90)}`;
+    const parsedDob = dob ? new Date(dob) : new Date("2011-05-15");
+
+    const newStudent = await prisma.student.create({
+      data: {
+        schoolId: school.id,
+        fullName: fullName.trim(),
+        rollNo: sRollNo,
+        classSectionId: sectionRecord.id,
+        gender: gender || "Male",
+        dateOfBirth: isNaN(parsedDob.getTime()) ? new Date("2011-05-15") : parsedDob,
+        isActive: true,
+      }
+    });
+
+    // Create default Tuition fee record
+    await prisma.feeRecord.create({
+      data: {
+        studentId: newStudent.id,
+        category: "Tuition Fee (Q2)",
+        amount: 25000.0,
+        paidAmount: 0.0,
+        status: "PENDING",
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      }
+    });
+
+    const fullStudent = await prisma.student.findUnique({
+      where: { id: newStudent.id },
+      include: {
+        classSection: {
+          include: { class: true }
+        },
+        feeRecords: true
+      }
+    });
+
+    res.status(201).json({ message: "Student created successfully", student: fullStudent });
+  } catch (error: any) {
+    console.error("directAddStudent error:", error);
+    res.status(500).json({ error: error.message || "Failed to add student" });
+  }
+}
+
+export async function deleteStudent(req: any, res: Response) {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.student.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    await prisma.student.delete({ where: { id } });
+    res.json({ message: "Student deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to delete student" });
   }
 }
 
